@@ -28,22 +28,21 @@ int main(int argc , char **argv)
     {
         std::string well_msg;
         int client_fd;
-        // memset(buffer, 0 , 1023);
         if (poll(fds.data(), fds.size(), 0) < 0)
         {
             perror("poll Error");
             exit(10);
         }
         size_t i;
-        // for(i = 0; i < fds.size(); ++i)
-        for(i = 0; i < clients.size(); ++i)
+        // for(i = 0; i < clients.size(); ++i)
+        for(i = 0; i < fds.size(); ++i)
         {
             if (fds[i].revents & POLLIN)
             {
+                sockaddr client_addr;
+                socklen_t client_len = sizeof(client_addr);
                 if (fds[i].fd == server_fd)
                 {
-                    sockaddr client_addr;
-                    socklen_t client_len = sizeof(client_addr);
                     well_msg = "WELCOME ! Please enter the password\n";
                     client_fd = accept(server_fd, &client_addr, &client_len);
                     if (send(client_fd, (well_msg.c_str()) , well_msg.size(), 0) < 0)
@@ -53,35 +52,32 @@ int main(int argc , char **argv)
                     }
                     fds.push_back((pollfd){client_fd, POLLIN, 0});
                     clients.push_back((t_client){client_fd, false});
+                    std::cout << client_fd << ": " << buffer << std::endl;
                 }
                 else
                 {
-                    memset(buffer, 0, well_msg.size());
+                    t_client &local_client = clients[i];
                     if (recv(client_fd, &buffer , 1023, 0) < 0)
                     {
                         perror("RECV Error :");
                         exit(1);
                     }
-                    fds.push_back((pollfd){client_fd, POLLIN, 0});
-                        std::cout << buffer << "client :" << client_fd << std::endl;
-                    //     puts(buffer);
-                    // if (!strncmp(buffer, password.c_str(), password.size()+1))
-                    //     puts("yes ");
-                    // else
-                    //     puts("noooo ");
                     std::string msg(buffer);
-                    memset(buffer, 0 , 1023);
-                    if (recv(fds[i].fd, buffer, 1023, 0) > 0)
+                    if (!local_client.authenticated)
                     {
-                        if (msg == password)
+                        if (!strncmp((const char *)password.c_str(), msg.c_str(), msg.size()+1))
                         {
-                            well_msg = "congratulations !!!";
-                            send(client_fd, (well_msg.c_str()) , well_msg.size(), 0);
+                            puts("authenticated ");
+                            puts(msg.c_str());
+                            local_client.authenticated = true;
                         }
-                        std::cout <<  "client " << client_fd << ": " << buffer << std::endl;
 
                     }
+                    // fds.push_back((pollfd){client_fd, POLLIN, 0});
+                    t_client client ;
+                    client.fd = fds[i].fd;
 
+                    std::cout << client_fd << ": " << buffer << std::endl;
                 }
             }
         }
