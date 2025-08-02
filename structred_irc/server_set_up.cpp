@@ -72,6 +72,7 @@ void server::handle_new_client(client &local_client, char *buffer, int i)
 
 void    server::handle_message(client &local_client, char *buffer, int index)
 {
+        std::cout << (int)*buffer << "  :" << buffer;
     if (!*buffer)
     {
         close(local_client.fd);
@@ -121,6 +122,7 @@ void server::start_server()
                     if (send(client_fd, welcome_str.c_str(), welcome_str.size(), 0) < 0)
                         throw(std::runtime_error("send_error : " + std::string(strerror(errno))));
                     this->fds.push_back((pollfd){client_fd, POLLIN, 0});
+                    // std::find(this->clients.begin(), this->fds->end(), this->clients.firs)     <<<<<<<<<<<<<<<<<<<<<<<<<
                     this->clients.push_back((client){client_fd, false});
                 }
                 else
@@ -131,7 +133,7 @@ void server::start_server()
                         throw(std::runtime_error("recv_error : " + std::string(strerror(errno))));
                     if (!local_client.authenticated)
                     {
-                        puts("will get connection ");
+                        // puts("will get connection ");
                         handle_new_client(local_client, buffer, i);
                     }
                     else //(*buffer)
