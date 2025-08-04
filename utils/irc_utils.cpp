@@ -1,4 +1,4 @@
-#include "includes.hpp"
+#include "../includes/includes.hpp"
 
 
 void    set_sockaddr(sockaddr_in **res, char *port)
@@ -35,4 +35,30 @@ void    listen_server(int server_fd)
         close(server_fd);
         exit(7);
     }
+}
+
+
+//split cmd for channel
+std::vector<std::string> split(const char *str, char d)
+{
+    std::vector<std::string> res;
+    std::string str1;
+    for (std::size_t i = 0; i < std::strlen(str); ++i)
+    {
+        if (str[0] == ',')
+            res.push_back("");
+        if (str[i] != d)
+            str1 += str[i];
+        else 
+        {
+            if (!str1.empty())
+            {
+                res.push_back(str1);
+                str1.clear();
+            }
+        }
+    }
+    if (!str1.empty())
+        res.push_back(str1);
+    return res;
 }

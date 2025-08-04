@@ -1,9 +1,7 @@
-#include "inlcudes.hpp"
+#include  "../includes/server.hpp"
+#include "../includes/includes.hpp"
 
-
-
-
-void server::create_socket()
+void Server::create_socket()
 {
     int local_socket;
     local_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -14,12 +12,12 @@ void server::create_socket()
     this->_socket_fd = local_socket;
 }
 
-void server::set_non_clocking()
+void Server::set_non_clocking()
 {
     fcntl(this->_socket_fd, F_SETFL, O_NONBLOCK);
 }
 
-void server::set_socket_addr()
+void Server::set_socket_addr()
 {
     this->_socket_addr = new sockaddr_in;
     if (!this->_socket_addr)
@@ -29,13 +27,13 @@ void server::set_socket_addr()
     this->_socket_addr->sin_addr.s_addr = inet_addr("127.0.0.1");
 }
 
-server::server(std::string port, std::string password)
+Server::Server(std::string port, std::string password)
 {
     this->_password = password;
     this->_port = std::stoi(port);
 }
 
-void server::set_listen()
+void Server::set_listen()
 {
     if (listen(this->_socket_fd, MAX_CLIENT) < 0)
     {
@@ -43,7 +41,7 @@ void server::set_listen()
     }
 }
 
-void server::bind_server()
+void Server::bind_server()
 {
     if (bind(this->_socket_fd, (struct sockaddr *)(this->_socket_addr), sizeof(sockaddr)) < 0)
     {
@@ -52,7 +50,7 @@ void server::bind_server()
 }
 
 
-void server::handle_new_client(client &local_client, char *buffer, int i)
+void Server::handle_new_client(Client &local_client, char *buffer, int i)
 {
     char *again_msg = (char *)"please renter the passswor !\r\n";
     if (!*buffer)
@@ -70,7 +68,7 @@ void server::handle_new_client(client &local_client, char *buffer, int i)
         send(local_client.fd, again_msg, strlen(again_msg), 0);
 }
 
-void    server::handle_message(client &local_client, char *buffer, int index)
+void    Server::handle_message(Client &local_client, char *buffer, int index)
 {
         std::cout << (int)*buffer << "  :" << buffer;
     if (!*buffer)
@@ -87,7 +85,7 @@ void    server::handle_message(client &local_client, char *buffer, int index)
 
 
 
-void server::start_server()
+void Server::start_server()
 {
     create_socket();
     set_non_clocking();
@@ -97,7 +95,7 @@ void server::start_server()
 
 
     this->fds.push_back((pollfd){this->_socket_fd, POLLIN, 0});
-    this->clients.push_back((client){this->_socket_fd, true});
+    this->clients.push_back((Client){this->_socket_fd, true});
     
     char buffer[1024];
     puts(this->_password.c_str());
@@ -123,11 +121,11 @@ void server::start_server()
                         throw(std::runtime_error("send_error : " + std::string(strerror(errno))));
                     this->fds.push_back((pollfd){client_fd, POLLIN, 0});
                     // std::find(this->clients.begin(), this->fds->end(), this->clients.firs)     <<<<<<<<<<<<<<<<<<<<<<<<<
-                    this->clients.push_back((client){client_fd, false});
+                    this->clients.push_back((Client){client_fd, false});
                 }
                 else
                 {
-                    client &local_client = this->clients[i];
+                    Client &local_client = this->clients[i];
                     memset(buffer, 0, 1024);
                     if (recv(local_client.fd, &buffer, 1024, 0) < 0)
                         throw(std::runtime_error("recv_error : " + std::string(strerror(errno))));
@@ -145,3 +143,46 @@ void server::start_server()
     }
 
 }
+//////////////channel
+Channel* Server::getchannel(std::string &name_channel)
+{
+    for(size_t i = 0; i < channels.size(); i++)
+    {
+        if (name_channel == channels[i].getName_channel())
+            return &channels[i];
+    }
+    std::cout << "channel not found :: "<< name_channel<< std::endl;
+    return NULL;
+}
+void Server::addchannel(std::string &name_channel)
+{
+    channels.push_back(Channel(name_channel));
+    std::cout << "channel is created :: "<< name_channel<< std::endl;
+}
+
+void Server::join(int fd, std::vector<std::string> &cmd)
+{
+    std::vector<std::string> newcmd = split(cmd[1].c_str(), ',');
+    //std::vector<std::string> passw = split(cmd[2].c_str(), ',');
+
+    for(size_t i = 0; i < newcmd.size(); i++)
+    {
+        Channel *check_channel = getchannel(newcmd[i]);
+        if (!check_channel)
+        {
+            addchannel(newcmd[i]);// creatchannel
+            check_channel = getchannel(newcmd[i]);
+            check_channel->addoperator(fd);
+            check_channel->setFlagk(true);//temp
+            check_channel->setPassword("99");//temp
+        }
+        //if (check_channel->getFlagk() == true)
+        //{ }
+        check_channel->addclient(fd);
+		// sendmsg(fd,)
+    }
+   
+    
+}
+
+

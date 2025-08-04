@@ -1,8 +1,8 @@
 NAME = ircserv
 
-SRC = main.cpp server_set_up.cpp
+SRC = main.cpp source/channel.cpp source/server.cpp utils/irc_utils.cpp
 
-INC = inlcudes.hpp
+INC = includes/includes.hpp includes/server.hpp includes/client.hpp includes/channel.hpp
 
 OBJ = $(SRC:.cpp=.o)
 
