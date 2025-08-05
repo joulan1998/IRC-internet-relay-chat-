@@ -43,11 +43,11 @@ class Server
         Channel* getchannel(std::string &name_channel);
         void addchannel(std::string &name_channel);
         //hena kanbda l cmd
-        void join(int fd, std::vector<std::string> &cmd);
+        void join(Client &client, std::vector<std::string> &cmd);
     // private:
         
 };
-
+std::map<std::string, std::string> pars_join(std::vector<std::string> &cmd);
 // void show(void *xx)
 // {
 //     std::cout << xx << std::endl;

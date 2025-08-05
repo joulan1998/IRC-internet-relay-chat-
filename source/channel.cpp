@@ -54,6 +54,7 @@ void Channel::addclient(int fd)
         clients.push_back(fd);
 
 }
+
 void Channel::sendmsg (const std::string& msg, int fd)
 {
     for (size_t i = 0 ; i < clients.size(); i++) {

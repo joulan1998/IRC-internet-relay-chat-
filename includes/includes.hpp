@@ -5,7 +5,7 @@
 #include <iostream>
 #include <string>
 #include <cstring>
-
+#include <map>
 #include "channel.hpp"
 #include "server.hpp"
 #include "client.hpp"
