@@ -45,17 +45,19 @@ std::vector<std::string> split(const char *str, char d)
     std::string str1;
     for (std::size_t i = 0; i < std::strlen(str); ++i)
     {
-        if (str[0] == ',')
-            res.push_back("");
+        if((i==0 && str[i] == d) || (i == std::strlen(str) && str[i] == d))
+        {
+            str1 += "";
+        }
         if (str[i] != d)
             str1 += str[i];
         else 
         {
-            if (!str1.empty())
-            {
+            // if (!str1.empty())
+            // {
                 res.push_back(str1);
                 str1.clear();
-            }
+            // }
         }
     }
     if (!str1.empty())

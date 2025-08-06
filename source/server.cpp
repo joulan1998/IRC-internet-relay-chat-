@@ -1,4 +1,5 @@
 #include  "../includes/server.hpp"
+#include  "../includes/channel.hpp"
 #include "../includes/includes.hpp"
 
 void Server::create_socket()
@@ -141,7 +142,7 @@ void Server::start_server()
                         if (split_buffer.size() < 2)
                             std::cout << "invalid argiment" << std::endl;
                         if (split_buffer[0] == "join")
-                            join(local_client, split_buffer);
+                            join(&local_client, split_buffer);
                         // for(size_t i = 0 ; i < split_buffer.size(); i++)
                         // {
                         //     std::cout << split_buffer[i] << std::endl;
@@ -156,7 +157,7 @@ void Server::start_server()
 
 }
 //////////////channel
-Channel* Server::getchannel(std::string &name_channel)
+Channel* Server::getchannel(const std::string &name_channel)
 {
     for(size_t i = 0; i < channels.size(); i++)
     {
@@ -166,60 +167,77 @@ Channel* Server::getchannel(std::string &name_channel)
     std::cout << "channel not found :: "<< name_channel<< std::endl;
     return NULL;
 }
-void Server::addchannel(std::string &name_channel)
+
+
+int Server::addchannel(const std::string &name_channel)
 {
-    channels.push_back(Channel(name_channel));
-    std::cout << "channel is created :: "<< name_channel<< std::endl;
+
+    std::cout<<"------------------>"<< name_channel<<std::endl;
+    if (name_channel[0] == '#')
+        channels.push_back(Channel(name_channel));
+    else 
+       return (std::cout << "channel not created :: "<< name_channel<< std::endl, 1);
+    return 0;
 }
+
 std::map<std::string, std::string> pars_join(std::vector<std::string> &cmd)
 {
     std::map<std::string, std::string> last_cmd;
     std::vector<std::string> keys;
-    std::vector<std::string> new_cmd;
-    if (cmd.size() > 2)
-        keys = split(cmd[2].c_str(), ',');
+    std::vector<std::string> channels;
 
-    new_cmd = split(cmd[1].c_str(), ',');
-    for(size_t j = 0; j < new_cmd.size(); j++)
+    if (cmd.size() > 2)
     {
-        if (keys.empty())
-            last_cmd[new_cmd[j]] = "";
-        else
-            last_cmd[new_cmd[j]] = keys[j];
+        keys = split(cmd[2].c_str(), ',');
+        //for debagin
+        // std::cout << "--------+++++++++++------------\n";
+        // for (size_t i = 0; i < keys.size(); i++){std::cout <<"[" <<keys[i]<<"]"<<std::endl;}
     }
     
-    std::map<std::string, std::string>::iterator it;
-    for(it= last_cmd.begin(); it != last_cmd.end(); ++it)
-        std::cout << "  ==  " << it->second<<std::endl;
+    channels = split(cmd[1].c_str(), ',');
+    for(size_t j = 0; j < channels.size(); j++)
+    {
+        if (keys.size() > j)
+            last_cmd[channels[j]] = keys[j];
+        else
+            last_cmd[channels[j]] = "";
+    }
+
+    // for (std::map<std::string, std::string>::iterator it = last_cmd.begin(); it != last_cmd.end(); ++it)
+    //     std::cout << it->first << "  ==  " << it->second << std::endl;
     return last_cmd;
 
 }
 
-void Server::join(Client &client, std::vector<std::string> &cmd)
+void Server::join(Client *client, std::vector<std::string> &cmd)
 {
-    (void)client;
-    // std::vector<std::string> newcmd = split(cmd[1].c_str(), ',');
     std::map<std::string, std::string> channel_pass = pars_join(cmd) ;
-    //std::vector<std::string> passw = split(cmd[2].c_str(), ',');
 
-    // for(size_t i = 0; i < newcmd.size(); i++)
-    // {
-    //     Channel *check_channel = getchannel(newcmd[i]);
-    //     if (!check_channel)
-    //     {
-    //         addchannel(newcmd[i]);// creatchannel
-    //         check_channel = getchannel(newcmd[i]);
-    //         check_channel->addoperator(client.fd);
-    //         check_channel->setFlagk(true);//temp
-    //         check_channel->setPassword("99");//temp
-    //     }
-    //     //if (check_channel->getFlagk() == true)
-    //     //{ }
-    //     check_channel->addclient(client.fd);
+    for (std::map<std::string, std::string>::iterator it = channel_pass.begin(); it != channel_pass.end(); ++it)
+    {
+        Channel *check_channel = getchannel(it->first);
+        if(!check_channel)
+        {
+            if (addchannel(it->first) == 0)// creatchannel
+            {
+                check_channel = getchannel(it->first);
+                check_channel->addoperator(client);
+            }
+            else
+            {
+                std::string err = ERR_NOSUCHCHANNEL(it->first);
+                if (send(client->fd, err.c_str(), err.length(), 0) < 0)
+                    std::cerr<< "msg not send"<<std::endl;
+            }
+            check_channel->addclient(client);
+            std::string hh ="dsaf dfadf fasfd fsa fa  fasdf";
+            check_channel->send_msg_in_channel(hh, client->fd);
+        }
+            // std::cout << it->first << "  ==  " << it->second << std::endl;
+    }
+
 	// 	// sendmsg(fd,)
     // }
-   
-    
 }
 
 

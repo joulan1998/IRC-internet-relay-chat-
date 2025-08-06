@@ -40,10 +40,10 @@ class Server
         void    handle_message(Client &local_client, char *buffer, int i);
 
         // hachi khas b channel 
-        Channel* getchannel(std::string &name_channel);
-        void addchannel(std::string &name_channel);
+        Channel* getchannel(const std::string &name_channel);
+        int addchannel(const std::string &name_channel);
         //hena kanbda l cmd
-        void join(Client &client, std::vector<std::string> &cmd);
+        void join(Client *client, std::vector<std::string> &cmd);
     // private:
         
 };

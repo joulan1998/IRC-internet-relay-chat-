@@ -1,6 +1,6 @@
 #include "../includes/channel.hpp"
 #include <algorithm>
-Channel::Channel(std::string &name) : name_channel(name){}
+Channel::Channel(const std::string &name) : name_channel(name){}
 
 std::string Channel::getName_channel(){return name_channel;}
 
@@ -10,27 +10,27 @@ bool Channel::getFlagk(){return k;}
 void Channel::setPassword(std::string pass){password = pass;}
 std::string Channel::getPassword(){return password;}
 
-void Channel::addoperator(int fd)
+void Channel::addoperator(Client* _client)
 {
     bool check = false;
     
     for (size_t i = 0; i < operators.size(); i++)
     {
-        if (operators[i] == fd)
+        if (operators[i] == _client)
         {
             check = true;
             break;
         }
     }
     if(!check)
-        operators.push_back(fd);
+        operators.push_back(_client);
 }
 
-bool Channel::isoperator(int fd){
+bool Channel::isoperator(Client* _client){
     bool check = false;
     for (size_t i = 0; i < clients.size(); i++)
     {
-        if (clients[i] == fd)
+        if (clients[i] == _client)
         {
             check = true;
             break;
@@ -39,27 +39,26 @@ bool Channel::isoperator(int fd){
     return check;
 }
 
-void Channel::addclient(int fd)
+void Channel::addclient(Client* _client)
 {
     bool check = false;
     for (size_t i = 0; i < clients.size(); i++)
     {
-        if (clients[i] == fd)
+        if (clients[i] == _client)
         {
             check = true;
             break;
         }
     }
     if(!check)
-        clients.push_back(fd);
-
+        clients.push_back(_client);
 }
 
-void Channel::sendmsg (const std::string& msg, int fd)
+void Channel::send_msg_in_channel(std::string& msg, int fd)
 {
-    for (size_t i = 0 ; i < clients.size(); i++) {
-        if (clients[i] != fd) {
-            send(clients[i],msg.c_str(), msg.size(), 0);
-        }
+    for(size_t i = 0; i < clients.size(); i++)
+    {
+        if(fd != clients[i]->fd)
+            send(clients[i]->fd, msg.c_str(), msg.length(), 0);
     }
 }

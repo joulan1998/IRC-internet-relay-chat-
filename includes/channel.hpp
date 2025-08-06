@@ -14,8 +14,8 @@ class Channel
 {
     private:
         std::string name_channel;
-        std::vector<int> clients;
-        std::vector<int > operators;
+        std::vector<Client *> clients;
+        std::vector<Client *> operators;
         std::string password;
         bool k;
         // bool l;
@@ -25,12 +25,12 @@ class Channel
         bool getFlagk();
         void setPassword(std::string passw);
         std::string getPassword();
-        Channel(std::string &name);
+        Channel(const std::string &name);
         std::string getName_channel();
-        void addoperator(int fd); 
-        bool isoperator(int fd);
-        void addclient(int fd);
-       void sendmsg (const std::string& msg, int fd);
+        void addoperator(Client* _client); 
+        bool isoperator(Client* _client);
+        void addclient(Client* _client);
+        void send_msg_in_channel(std::string& msg, int fd);
 
 };
 
