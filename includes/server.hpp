@@ -16,6 +16,7 @@
 #define MAX_CLIENT 10
 
 class Channel;
+class Client;
 
 class Server
 {
@@ -41,7 +42,7 @@ class Server
 
         // hachi khas b channel 
         Channel* getchannel(const std::string &name_channel);
-        int addchannel(const std::string &name_channel);
+        int addchannel(Client* _client, const std::string &name_channel);
         //hena kanbda l cmd
         void join(Client *client, std::vector<std::string> &cmd);
     // private:

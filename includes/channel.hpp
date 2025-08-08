@@ -30,7 +30,8 @@ class Channel
         void addoperator(Client* _client); 
         bool isoperator(Client* _client);
         void addclient(Client* _client);
-        void send_msg_in_channel(std::string& msg, int fd);
+        int is_client(Client* _client);
+        void send_msg_in_channel(std::string& msg);
 
 };
 

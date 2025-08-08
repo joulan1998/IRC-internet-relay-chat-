@@ -143,6 +143,7 @@ void Server::start_server()
                             std::cout << "invalid argiment" << std::endl;
                         if (split_buffer[0] == "join")
                             join(&local_client, split_buffer);
+                        if (split_buffer[0] == "topic")
                         // for(size_t i = 0 ; i < split_buffer.size(); i++)
                         // {
                         //     std::cout << split_buffer[i] << std::endl;
@@ -169,14 +170,18 @@ Channel* Server::getchannel(const std::string &name_channel)
 }
 
 
-int Server::addchannel(const std::string &name_channel)
+int Server::addchannel(Client *_client, const std::string &name_channel)
 {
 
     std::cout<<"------------------>"<< name_channel<<std::endl;
-    if (name_channel[0] == '#')
+    if (name_channel[0] == '#' && name_channel[1] != '\0')
         channels.push_back(Channel(name_channel));
-    else 
-       return (std::cout << "channel not created :: "<< name_channel<< std::endl, 1);
+    else
+    {
+        std::string msg = ERR_NOSUCHCHANNEL(name_channel);
+        send(_client->fd, msg.c_str(), msg.length(), 0);
+        return (1);
+    }
     return 0;
 }
 
@@ -186,13 +191,7 @@ std::map<std::string, std::string> pars_join(std::vector<std::string> &cmd)
     std::vector<std::string> keys;
     std::vector<std::string> channels;
 
-    if (cmd.size() > 2)
-    {
-        keys = split(cmd[2].c_str(), ',');
-        //for debagin
-        // std::cout << "--------+++++++++++------------\n";
-        // for (size_t i = 0; i < keys.size(); i++){std::cout <<"[" <<keys[i]<<"]"<<std::endl;}
-    }
+    if (cmd.size() > 2){keys = split(cmd[2].c_str(), ',');}
     
     channels = split(cmd[1].c_str(), ',');
     for(size_t j = 0; j < channels.size(); j++)
@@ -203,8 +202,6 @@ std::map<std::string, std::string> pars_join(std::vector<std::string> &cmd)
             last_cmd[channels[j]] = "";
     }
 
-    // for (std::map<std::string, std::string>::iterator it = last_cmd.begin(); it != last_cmd.end(); ++it)
-    //     std::cout << it->first << "  ==  " << it->second << std::endl;
     return last_cmd;
 
 }
@@ -212,32 +209,46 @@ std::map<std::string, std::string> pars_join(std::vector<std::string> &cmd)
 void Server::join(Client *client, std::vector<std::string> &cmd)
 {
     std::map<std::string, std::string> channel_pass = pars_join(cmd) ;
-
+    std::string msg;
     for (std::map<std::string, std::string>::iterator it = channel_pass.begin(); it != channel_pass.end(); ++it)
     {
         Channel *check_channel = getchannel(it->first);
         if(!check_channel)
         {
-            if (addchannel(it->first) == 0)// creatchannel
+            if (addchannel(client, it->first) == 0)
             {
                 check_channel = getchannel(it->first);
                 check_channel->addoperator(client);
+                if (!(it->second.empty()))
+                {
+                    std::cout<< "erroooooooooooor\n";
+                    check_channel->setPassword(it->second);
+                    check_channel->setFlagk(true);
+                }
             }
-            else
-            {
-                std::string err = ERR_NOSUCHCHANNEL(it->first);
-                if (send(client->fd, err.c_str(), err.length(), 0) < 0)
-                    std::cerr<< "msg not send"<<std::endl;
-            }
-            check_channel->addclient(client);
-            std::string hh ="dsaf dfadf fasfd fsa fa  fasdf";
-            check_channel->send_msg_in_channel(hh, client->fd);
         }
-            // std::cout << it->first << "  ==  " << it->second << std::endl;
+        if(check_channel->getFlagk() == true)
+        {
+            if (check_channel->getPassword() != it->second)
+            {
+                msg = ERR_BADCHANNELKEY(check_channel->getName_channel());
+                send(client->fd, msg.c_str(), msg.length(), 0);
+                continue;
+            }
+        }
+        std::string ll= "hana henaaaaa\n";
+        send(client->fd, ll.c_str(), ll.length(), 0);
+        if(!check_channel->is_client(client))
+        {
+            msg = RPL_JOIN("userrr_",check_channel->getName_channel());
+            check_channel->addclient(client);
+            check_channel->send_msg_in_channel(msg);
+            /*std::string msg1 = RPL_NAMREPLY("user_", check_channel->getName_channel(), "user");
+            send(client->fd, msg1.c_str(), msg1.length(), 0);
+            std::string msg2 = RPL_ENDOFNAMES("user_", check_channel->getName_channel());
+            send(client->fd, msg2.c_str(), msg2.length(), 0);*/
+        }
     }
-
-	// 	// sendmsg(fd,)
-    // }
 }
 
 

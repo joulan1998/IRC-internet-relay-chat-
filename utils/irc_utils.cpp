@@ -39,6 +39,11 @@ void    listen_server(int server_fd)
 
 
 //split cmd for channel
+void cleanString(std::string &s)
+{
+    s.erase(std::remove(s.begin(), s.end(), '\r'), s.end());
+    s.erase(std::remove(s.begin(), s.end(), '\n'), s.end());
+}
 std::vector<std::string> split(const char *str, char d)
 {
     std::vector<std::string> res;
@@ -55,12 +60,16 @@ std::vector<std::string> split(const char *str, char d)
         {
             // if (!str1.empty())
             // {
+                cleanString(str1);
                 res.push_back(str1);
                 str1.clear();
             // }
         }
     }
     if (!str1.empty())
+    {
+        cleanString(str1);
         res.push_back(str1);
+    }
     return res;
 }

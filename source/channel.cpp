@@ -53,12 +53,17 @@ void Channel::addclient(Client* _client)
     if(!check)
         clients.push_back(_client);
 }
-
-void Channel::send_msg_in_channel(std::string& msg, int fd)
+int Channel::is_client(Client* _client)
+{
+    for (size_t i = 0; i < clients.size(); i++)
+    {
+        if(clients[i] == _client)
+            return 1;
+    }
+    return 0;
+}
+void Channel::send_msg_in_channel(std::string& msg)
 {
     for(size_t i = 0; i < clients.size(); i++)
-    {
-        if(fd != clients[i]->fd)
-            send(clients[i]->fd, msg.c_str(), msg.length(), 0);
-    }
+        send(clients[i]->fd, msg.c_str(), msg.length(), 0);
 }
