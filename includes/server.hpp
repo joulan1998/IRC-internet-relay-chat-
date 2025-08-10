@@ -45,6 +45,7 @@ class Server
         int addchannel(Client* _client, const std::string &name_channel);
         //hena kanbda l cmd
         void join(Client *client, std::vector<std::string> &cmd);
+        void topic(Client *client, const char* cmd);
     // private:
         
 };

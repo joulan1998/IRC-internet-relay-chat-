@@ -144,6 +144,7 @@ void Server::start_server()
                         if (split_buffer[0] == "join")
                             join(&local_client, split_buffer);
                         if (split_buffer[0] == "topic")
+                            topic(&local_client, buffer);
                         // for(size_t i = 0 ; i < split_buffer.size(); i++)
                         // {
                         //     std::cout << split_buffer[i] << std::endl;
@@ -240,8 +241,8 @@ void Server::join(Client *client, std::vector<std::string> &cmd)
         send(client->fd, ll.c_str(), ll.length(), 0);
         if(!check_channel->is_client(client))
         {
-            msg = RPL_JOIN("userrr_",check_channel->getName_channel());
             check_channel->addclient(client);
+            msg = RPL_JOIN("userrr_",check_channel->getName_channel());
             check_channel->send_msg_in_channel(msg);
             /*std::string msg1 = RPL_NAMREPLY("user_", check_channel->getName_channel(), "user");
             send(client->fd, msg1.c_str(), msg1.length(), 0);
@@ -252,3 +253,58 @@ void Server::join(Client *client, std::vector<std::string> &cmd)
 }
 
 
+
+
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+
+
+
+void Server::topic(Client *client,  const char *cmd)
+{
+    (void)client;
+    std::vector<std::string> new_cmd = split(cmd, ' ');
+    if (new_cmd.size() == 1 && new_cmd[0] == "topic")
+    {
+        std::cout << "errooooor \n";
+        return;
+    }
+    if (new_cmd.size() < 2)
+    {
+        std::cout << "errooooor \n";
+        return;
+    }
+    Channel *ch = getchannel(new_cmd[1]);
+    if (new_cmd.size() == 2)
+    {
+        if (!ch)
+            std::cout << "makinach had channel";
+        else {
+            if (ch->getTopic().empty())
+            {
+                std::cout << "ma3andouch topic\n";
+                return;
+            }
+            else 
+            {
+                std::cout << ch->getTopic();
+                return;
+            }
+
+        }
+    }
+    //ila makanch f cahnnel chi topic oja odar topic #ch :sdfsdfasd ghadi isift l ga3 l users b anaho dar topic;
+
+}

@@ -67,3 +67,6 @@ void Channel::send_msg_in_channel(std::string& msg)
     for(size_t i = 0; i < clients.size(); i++)
         send(clients[i]->fd, msg.c_str(), msg.length(), 0);
 }
+
+std::string Channel::getTopic(){return topic};
+void Channel::setTopic(std::string settopic){topic = settopic;}
