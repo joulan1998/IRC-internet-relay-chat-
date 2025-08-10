@@ -3,9 +3,8 @@ server *ref;
 void f()
 {
     close(ref->_socket_fd);
+    // system("lsof -C ircserv");
 }
-
-
 int main(int argc, char  **argv)
 {
     if (argc != 3)
@@ -24,7 +23,6 @@ int main(int argc, char  **argv)
         std::cerr << e.what() << '\n';
     }
     atexit(f);
-    // std::cout << server._port << server._password << std::endl;
     
 
 

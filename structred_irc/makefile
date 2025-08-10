@@ -1,6 +1,6 @@
 NAME = ircserv
 
-SRC = main.cpp server_set_up.cpp
+SRC = main.cpp server_set_up.cpp usrname_and_nickname.cpp socket_handling.cpp string_to_int.cpp
 
 INC = inlcudes.hpp
 
@@ -8,7 +8,7 @@ OBJ = $(SRC:.cpp=.o)
 
 CXX = c++
 
-CXXFLAGS = -Wall -Wextra -Werror -std=c++98
+CXXFLAGS = -Wall -Wextra -Werror -std=c++98 #-fsanitize=address
 
 all: $(NAME)
 

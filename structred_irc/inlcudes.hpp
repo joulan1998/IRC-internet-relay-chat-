@@ -8,15 +8,22 @@
 #include <arpa/inet.h>
 #include <poll.h>
 #include <fcntl.h>
+#include <sstream>
 #include <vector>
 #include <unistd.h>
 #include <algorithm>
+#include <signal.h>
 #define MAX_CLIENT 10
 
+// should be a class
 struct client
 {
     int fd;
     bool authenticated;
+    std::string nickname;
+    std::string username;
+        // nickname
+        // username...
 };
 
 class server
@@ -32,15 +39,20 @@ class server
 
 
 
+
+
         server(std::string port, std::string password);
         void    start_server();
         void    create_socket();
         void    set_non_clocking();
         void    set_socket_addr();
+        void    socket_options();
         void    bind_server();
         void    set_listen();
         void    handle_new_client(client &local_client, char *buffer, int index);
         void    handle_message(client &local_client, char *buffer, int i);
+        int     handle_username(client &local_client);
+        int    handle_nickname(client &local_client/*,int i*/);
 
 
 
@@ -50,6 +62,7 @@ class server
         
 };
 
+int string_to_int(const std::string &str);
 // void show(void *xx)
 // {
 //     std::cout << xx << std::endl;
