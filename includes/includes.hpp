@@ -1,7 +1,12 @@
 #ifndef INCLUDES_H
 #define INCLUDES_H
 
+#include <cerrno>   // errno, EAGAIN, EWOULDBLOCK
+#include <cstring>  // strerror, memset, strlen, strdup
+#include <cstdio>   // perror, puts
+
 #include <vector>
+#include <sstream>
 #include <iostream>
 #include <string>
 #include <cstring>
@@ -26,6 +31,7 @@
 
 class Server;
 std::vector<std::string> split(const char *str, char d);
+int string_to_int(const std::string &str);
 
 
 

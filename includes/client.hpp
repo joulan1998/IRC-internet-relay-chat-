@@ -7,6 +7,8 @@ struct Client
 {
     int fd;
     bool authenticated;
+    std::string nickname;
+    std::string username;
 };
 
 

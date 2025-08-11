@@ -16,7 +16,7 @@
 #define MAX_CLIENT 10
 
 class Channel;
-class Client;
+struct Client;
 
 class Server
 {
@@ -35,10 +35,14 @@ class Server
         void    create_socket();
         void    set_non_clocking();
         void    set_socket_addr();
+        void    socket_options();
         void    bind_server();
         void    set_listen();
         void    handle_new_client(Client &local_client, char *buffer, int index);
         void    handle_message(Client &local_client, char *buffer, int i);
+        int     handle_username(Client &local_client);
+        int     handle_nickname(Client &local_client/*,int i*/);
+
 
         // hachi khas b channel 
         Channel* getchannel(const std::string &name_channel);
@@ -54,4 +58,7 @@ std::map<std::string, std::string> pars_join(std::vector<std::string> &cmd);
 // {
 //     std::cout << xx << std::endl;
 // }
+
+
+
 #endif
