@@ -235,14 +235,15 @@ void Server::start_server()
                     }
                     else //(*buffer)
                     {
-                        std::vector<std::string> split_buffer = split(buffer, ' ');
+                        std::string new_buffer(buffer);
+                        std::vector<std::string> split_buffer = split(new_buffer, ' ', false);
                         if (split_buffer.size() < 2)
                             std::cout << "invalid argiment" << std::endl;
                         if (split_buffer[0] == "join")
                             join(&local_client, split_buffer);
                         if (split_buffer[0] == "topic")
                             topic(&local_client, buffer);
-                         handle_message(local_client, buffer, i);
+                        //  handle_message(local_client, buffer, i);
                     }
                 }
             }
@@ -256,7 +257,7 @@ Channel* Server::getchannel(const std::string &name_channel)
 {
     for(size_t i = 0; i < channels.size(); i++)
     {
-        if (name_channel == channels[i].getName_channel())
+        if (!name_channel.empty() && name_channel == channels[i].getName_channel())
             return &channels[i];
     }
     std::cout << "channel not found :: "<< name_channel<< std::endl;
@@ -285,9 +286,16 @@ std::map<std::string, std::string> pars_join(std::vector<std::string> &cmd)
     std::vector<std::string> keys;
     std::vector<std::string> channels;
 
-    if (cmd.size() > 2){keys = split(cmd[2].c_str(), ',');}
+    if (cmd.size() > 2){keys = split(cmd[2], ',', true);}
     
-    channels = split(cmd[1].c_str(), ',');
+    channels = split(cmd[1], ',', true);
+    std::cout << "----------------------------------\n";
+
+    for (size_t i = 0; i < channels.size(); i++)
+    {
+        std::cout << channels[i] << std::endl;
+    }
+    std::cout << "----------------------------------\n";
     for(size_t j = 0; j < channels.size(); j++)
     {
         if (keys.size() > j)
@@ -295,13 +303,18 @@ std::map<std::string, std::string> pars_join(std::vector<std::string> &cmd)
         else
             last_cmd[channels[j]] = "";
     }
-
+    for (std::map<std::string, std::string>::iterator it = last_cmd.begin(); it != last_cmd.end(); ++it)
+        std::cout << it->first << "  ==  " << it->second << std::endl;
     return last_cmd;
 
 }
 
 void Server::join(Client *client, std::vector<std::string> &cmd)
 {
+    // for (size_t i = 0; i < cmd.size(); i++)
+    // {
+    //     std::cout<< cmd[i]<<std::endl;
+    // }
     std::map<std::string, std::string> channel_pass = pars_join(cmd) ;
     std::string msg;
     for (std::map<std::string, std::string>::iterator it = channel_pass.begin(); it != channel_pass.end(); ++it)
@@ -321,26 +334,29 @@ void Server::join(Client *client, std::vector<std::string> &cmd)
                 }
             }
         }
-        if(check_channel->getFlagk() == true)
+        if (check_channel)
         {
-            if (check_channel->getPassword() != it->second)
+            if(check_channel->getFlagk() == true)
             {
-                msg = ERR_BADCHANNELKEY(check_channel->getName_channel());
-                send(client->fd, msg.c_str(), msg.length(), 0);
-                continue;
+                if (check_channel->getPassword() != it->second)
+                {
+                    msg = ERR_BADCHANNELKEY(check_channel->getName_channel());
+                    send(client->fd, msg.c_str(), msg.length(), 0);
+                    continue;
+                }
             }
-        }
-        std::string ll= "hana henaaaaa\n";
-        send(client->fd, ll.c_str(), ll.length(), 0);
-        if(!check_channel->is_client(client))
-        {
-            check_channel->addclient(client);
-            msg = RPL_JOIN("userrr_",check_channel->getName_channel());
-            check_channel->send_msg_in_channel(msg);
-            /*std::string msg1 = RPL_NAMREPLY("user_", check_channel->getName_channel(), "user");
-            send(client->fd, msg1.c_str(), msg1.length(), 0);
-            std::string msg2 = RPL_ENDOFNAMES("user_", check_channel->getName_channel());
-            send(client->fd, msg2.c_str(), msg2.length(), 0);*/
+            std::string ll= "hana henaaaaa\n";
+            send(client->fd, ll.c_str(), ll.length(), 0);
+            if(!check_channel->is_client(client))
+            {
+                check_channel->addclient(client);
+                msg = RPL_JOIN("userrr_",check_channel->getName_channel());
+                check_channel->send_msg_in_channel(msg);
+                /*std::string msg1 = RPL_NAMREPLY("user_", check_channel->getName_channel(), "user");
+                send(client->fd, msg1.c_str(), msg1.length(), 0);
+                std::string msg2 = RPL_ENDOFNAMES("user_", check_channel->getName_channel());
+                send(client->fd, msg2.c_str(), msg2.length(), 0);*/
+            }
         }
     }
 }
@@ -364,14 +380,14 @@ void Server::join(Client *client, std::vector<std::string> &cmd)
 ///////////////////////////////////////////////////////////////////////////
 
 
-
-void Server::topic(Client *client,  const char *cmd)
+void Server::topic(Client *client,  std::string cmd)
 {
     (void)client;
-    std::vector<std::string> new_cmd = split(cmd, ' ');
+    std::vector<std::string> new_cmd = split(cmd, ' ',false);
     if (new_cmd.size() == 1 && new_cmd[0] == "topic")
     {
-        std::cout << "errooooor \n";
+        std::string kk = "erooooor";
+        send(client->fd, kk.c_str(), kk.length(), 0);
         return;
     }
     if (new_cmd.size() < 2)
@@ -396,7 +412,7 @@ void Server::topic(Client *client,  const char *cmd)
                 return;
             }
         }
-    }
+    } 
     if (new_cmd.size() > 2)
     {
         std::string ii = cmd;

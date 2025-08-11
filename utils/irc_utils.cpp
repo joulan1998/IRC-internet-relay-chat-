@@ -57,32 +57,34 @@ void cleanString(std::string &s)
     s.erase(std::remove(s.begin(), s.end(), '\r'), s.end());
     s.erase(std::remove(s.begin(), s.end(), '\n'), s.end());
 }
-std::vector<std::string> split(const char *str, char d)
+std::vector<std::string> split(std::string &str, char delem, bool flag)
 {
-    std::vector<std::string> res;
-    std::string str1;
-    for (std::size_t i = 0; i < std::strlen(str); ++i)
+    std::vector<std::string> last_cmd;
+    std::istringstream iss(str);
+    std::string cmd;
+    std::string new_str;
+
+    if(flag == false)
     {
-        if((i==0 && str[i] == d) || (i == std::strlen(str) && str[i] == d))
+        while(iss >> cmd)
         {
-            str1 += "";
-        }
-        if (str[i] != d)
-            str1 += str[i];
-        else 
-        {
-            // if (!str1.empty())
-            // {
-                cleanString(str1);
-                res.push_back(str1);
-                str1.clear();
-            // }
+            cleanString(cmd);
+            last_cmd.push_back(cmd);
         }
     }
-    if (!str1.empty())
+    else
     {
-        cleanString(str1);
-        res.push_back(str1);
+        size_t start = 0;
+        size_t pos = str.find(delem);
+        while (pos != std::string::npos)
+        {
+            new_str = str.substr(start, pos - start);
+            cleanString(new_str);
+            last_cmd.push_back(new_str);
+            start = pos+ 1;
+            pos = str.find(delem, start);
+        }
+        last_cmd.push_back(str.substr(start));
     }
-    return res;
+    return last_cmd;
 }

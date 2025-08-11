@@ -30,7 +30,10 @@
 ////////////////
 
 class Server;
-std::vector<std::string> split(const char *str, char d);
+
+
+
+std::vector<std::string> split(std::string &str, char delem, bool flag);
 int string_to_int(const std::string &str);
 
 
