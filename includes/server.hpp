@@ -53,7 +53,7 @@ class Server
     // private:
         
 };
-std::map<std::string, std::string> pars_join(std::vector<std::string> &cmd);
+std::vector<std::pair<std::string, std::string> > pars_join(std::vector<std::string> &cmd);
 // void show(void *xx)
 // {
 //     std::cout << xx << std::endl;

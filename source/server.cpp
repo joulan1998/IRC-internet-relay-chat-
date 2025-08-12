@@ -183,6 +183,7 @@ int Server::handle_username(Client &local_client)
     std::cout << "SUCCESS! Username set to: " << local_client.username << std::endl;
     return 0;
 }
+
 void Server::start_server()
 {
     create_socket();
@@ -236,10 +237,14 @@ void Server::start_server()
                     else //(*buffer)
                     {
                         std::string new_buffer(buffer);
+                        // cleanString(new_buffer);
                         std::vector<std::string> split_buffer = split(new_buffer, ' ', false);
                         if (split_buffer.size() < 2)
+                        {
                             std::cout << "invalid argiment" << std::endl;
-                        if (split_buffer[0] == "join")
+                            continue;
+                        }
+                        if ( split_buffer[0] == "join")
                             join(&local_client, split_buffer);
                         if (split_buffer[0] == "topic")
                             topic(&local_client, buffer);
@@ -280,12 +285,12 @@ int Server::addchannel(Client *_client, const std::string &name_channel)
     return 0;
 }
 
-std::map<std::string, std::string> pars_join(std::vector<std::string> &cmd)
+std::vector<std::pair<std::string, std::string> > pars_join(std::vector<std::string> &cmd)
 {
-    std::map<std::string, std::string> last_cmd;
+    std::vector<std::pair<std::string, std::string> > last_cmd;
     std::vector<std::string> keys;
     std::vector<std::string> channels;
-
+    std::string password;
     if (cmd.size() > 2){keys = split(cmd[2], ',', true);}
     
     channels = split(cmd[1], ',', true);
@@ -298,38 +303,34 @@ std::map<std::string, std::string> pars_join(std::vector<std::string> &cmd)
     std::cout << "----------------------------------\n";
     for(size_t j = 0; j < channels.size(); j++)
     {
+        password = "";
         if (keys.size() > j)
-            last_cmd[channels[j]] = keys[j];
-        else
-            last_cmd[channels[j]] = "";
+            password = keys[j];
+        last_cmd.push_back(std::make_pair(channels[j], password));
     }
-    for (std::map<std::string, std::string>::iterator it = last_cmd.begin(); it != last_cmd.end(); ++it)
-        std::cout << it->first << "  ==  " << it->second << std::endl;
+    for (size_t i = 0; last_cmd.size() > i; i++)
+        std::cout << last_cmd[i].first << "  ==  " << last_cmd[i].second << std::endl;
     return last_cmd;
 
 }
 
 void Server::join(Client *client, std::vector<std::string> &cmd)
 {
-    // for (size_t i = 0; i < cmd.size(); i++)
-    // {
-    //     std::cout<< cmd[i]<<std::endl;
-    // }
-    std::map<std::string, std::string> channel_pass = pars_join(cmd) ;
+    std::vector<std::pair<std::string, std::string> > channel_pass = pars_join(cmd) ;
     std::string msg;
-    for (std::map<std::string, std::string>::iterator it = channel_pass.begin(); it != channel_pass.end(); ++it)
+    for (size_t i = 0; i < channel_pass.size(); i++)
     {
-        Channel *check_channel = getchannel(it->first);
+        Channel *check_channel = getchannel(channel_pass[i].first);
         if(!check_channel)
         {
-            if (addchannel(client, it->first) == 0)
+            if (addchannel(client, channel_pass[i].first) == 0)
             {
-                check_channel = getchannel(it->first);
+                check_channel = getchannel(channel_pass[i].first);
                 check_channel->addoperator(client);
-                if (!(it->second.empty()))
+                if (!(channel_pass[i].second.empty()))
                 {
                     std::cout<< "erroooooooooooor\n";
-                    check_channel->setPassword(it->second);
+                    check_channel->setPassword(channel_pass[i].second);
                     check_channel->setFlagk(true);
                 }
             }
@@ -338,7 +339,7 @@ void Server::join(Client *client, std::vector<std::string> &cmd)
         {
             if(check_channel->getFlagk() == true)
             {
-                if (check_channel->getPassword() != it->second)
+                if (check_channel->getPassword() != channel_pass[i].second)
                 {
                     msg = ERR_BADCHANNELKEY(check_channel->getName_channel());
                     send(client->fd, msg.c_str(), msg.length(), 0);
@@ -367,23 +368,13 @@ void Server::join(Client *client, std::vector<std::string> &cmd)
 ///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
 
 
 void Server::topic(Client *client,  std::string cmd)
 {
     (void)client;
     std::vector<std::string> new_cmd = split(cmd, ' ',false);
+
     if (new_cmd.size() == 1 && new_cmd[0] == "topic")
     {
         std::string kk = "erooooor";
@@ -416,8 +407,12 @@ void Server::topic(Client *client,  std::string cmd)
     if (new_cmd.size() > 2)
     {
         std::string ii = cmd;
-        size_t index = ii.find(new_cmd[1]);
-        std::cout << index<<std::endl;
+        size_t index = ii.find(new_cmd[1]) + new_cmd[1].length();
+        while(cmd[index] == ' ') index++;
+        std::string msg(&cmd[index]);
+    ch->setTopic(msg);
+        ch->send_msg_in_channel(msg);
+
     }
     //ila makanch f cahnnel chi topic oja odar topic #ch :sdfsdfasd ghadi isift l ga3 l users b anaho dar topic;
 

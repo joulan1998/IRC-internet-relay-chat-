@@ -68,7 +68,7 @@ std::vector<std::string> split(std::string &str, char delem, bool flag)
     {
         while(iss >> cmd)
         {
-            cleanString(cmd);
+            // cleanString(cmd);
             last_cmd.push_back(cmd);
         }
     }
@@ -79,7 +79,7 @@ std::vector<std::string> split(std::string &str, char delem, bool flag)
         while (pos != std::string::npos)
         {
             new_str = str.substr(start, pos - start);
-            cleanString(new_str);
+            // cleanString(new_str);
             last_cmd.push_back(new_str);
             start = pos+ 1;
             pos = str.find(delem, start);

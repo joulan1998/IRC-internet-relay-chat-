@@ -26,6 +26,15 @@ void Channel::addoperator(Client* _client)
         operators.push_back(_client);
 }
 
+bool Channel::check_operator(Client* _client)
+{
+     for (size_t i = 0; i < operators.size(); i++)
+    {
+        if (operators[i] == _client)
+            return true;
+    }
+    return false;
+}
 bool Channel::isoperator(Client* _client){
     bool check = false;
     for (size_t i = 0; i < clients.size(); i++)

@@ -34,6 +34,8 @@ class Server;
 
 
 std::vector<std::string> split(std::string &str, char delem, bool flag);
+void cleanString(std::string &s);
+
 int string_to_int(const std::string &str);
 
 
