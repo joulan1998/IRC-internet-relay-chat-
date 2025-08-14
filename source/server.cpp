@@ -160,6 +160,7 @@ int Server::handle_username(Client &local_client)
 
         if (bytes_received > 0)
         {
+            
             username[bytes_received +1] = '\0';
             break;
         }
@@ -327,36 +328,27 @@ void Server::join(Client *client, std::vector<std::string> &cmd)
             {
                 check_channel = getchannel(channel_pass[i].first);
                 check_channel->addoperator(client);
-                if (!(channel_pass[i].second.empty()))
+                if (channel_pass[i].second.empty())//TODO hada tah ghir tmp bach n testi bih
                 {
-                    std::cout<< "erroooooooooooor\n";
                     check_channel->setPassword(channel_pass[i].second);
-                    check_channel->setFlagk(true);
+                    check_channel->setFlag_k(true);
                 }
             }
         }
         if (check_channel)
         {
-            if(check_channel->getFlagk() == true)
+            if (check_channel->getFlag_k()  && check_channel->getPassword() != channel_pass[i].second)
             {
-                if (check_channel->getPassword() != channel_pass[i].second)
-                {
-                    msg = ERR_BADCHANNELKEY(check_channel->getName_channel());
-                    send(client->fd, msg.c_str(), msg.length(), 0);
-                    continue;
-                }
+                print_error(client->fd, ERR_BADCHANNELKEY(check_channel->getName_channel()));
+                continue;
             }
-            std::string ll= "hana henaaaaa\n";
-            send(client->fd, ll.c_str(), ll.length(), 0);
-            if(!check_channel->is_client(client))
+            if(!check_channel->is_client(client) )
             {
-                check_channel->addclient(client);
-                msg = RPL_JOIN("userrr_",check_channel->getName_channel());
-                check_channel->send_msg_in_channel(msg);
-                /*std::string msg1 = RPL_NAMREPLY("user_", check_channel->getName_channel(), "user");
-                send(client->fd, msg1.c_str(), msg1.length(), 0);
-                std::string msg2 = RPL_ENDOFNAMES("user_", check_channel->getName_channel());
-                send(client->fd, msg2.c_str(), msg2.length(), 0);*/
+                if (!check_channel->isoperator(client))
+                    check_channel->addclient(client);
+                check_channel->send_msg_in_channel(RPL_JOIN(client->nickname,check_channel->getName_channel()));
+                print_error(client->fd, RPL_NAMREPLY(client->nickname, check_channel->getName_channel(), client->nickname));
+                print_error(client->fd, RPL_ENDOFNAMES(client->nickname, check_channel->getName_channel()));
             }
         }
     }
@@ -366,42 +358,45 @@ void Server::join(Client *client, std::vector<std::string> &cmd)
 
 
 ///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
 
+void Server::print_error(int fd, std::string msg)
+{
+    if (send(fd, msg.c_str(), msg.length(), 0))
+        std::cout << "msg not send "<< std::endl;
+}
 
+//TODO KHASNI NZID ILA CHANNEL KHAS GHIR ADMIN LI BDEL TOPIC
 void Server::topic(Client *client,  std::string cmd)
 {
-    (void)client;
     std::vector<std::string> new_cmd = split(cmd, ' ',false);
-
-    if (new_cmd.size() == 1 && new_cmd[0] == "topic")
+    if (new_cmd.size() == 1 && new_cmd[0] == "topic ")
     {
-        std::string kk = "erooooor";
-        send(client->fd, kk.c_str(), kk.length(), 0);
-        return;
-    }
-    if (new_cmd.size() < 2)
-    {
-        std::cout << "errooooor \n";
+        print_error(client->fd, ERR_NEEDMOREPARAMS(client->nickname));
         return;
     }
     Channel *ch = getchannel(new_cmd[1]);
+    if (!ch)
+    {
+        print_error(client->fd, ERR_NOSUCHCHANNEL(new_cmd[1]));
+        return;
+    }
+    if (!ch->is_client(client) ) //TODO && check is operator
+    {
+        print_error(client->fd, ERR_NOTONCHANNEL(client->nickname, new_cmd[1]));
+        return;
+    }
     if (new_cmd.size() == 2)
     {
-        if (!ch)
-            std::cout << "makinach had channel";
-        else {
-            if (ch->getTopic().empty())
-            {
-                std::cout << "ma3andouch topic\n";
-                return;
-            }
-            else 
-            {
-                std::cout << ch->getTopic();
-                return;
-            }
+        if (ch->getTopic().empty())
+        {
+            print_error(client->fd, RPL_NOTOPIC(client->nickname, new_cmd[1]));
+            return;
+        }
+        else 
+        {
+            print_error(client->fd, RPL_TOPIC(client->nickname, new_cmd[1], ch->getTopic()));
+            std::cout << ch->getTopic();
+            return;
         }
     } 
     if (new_cmd.size() > 2)
@@ -409,11 +404,15 @@ void Server::topic(Client *client,  std::string cmd)
         std::string ii = cmd;
         size_t index = ii.find(new_cmd[1]) + new_cmd[1].length();
         while(cmd[index] == ' ') index++;
-        std::string msg(&cmd[index]);
-    ch->setTopic(msg);
-        ch->send_msg_in_channel(msg);
+        if (cmd[index] != ':')
+            ch->setTopic(new_cmd[2] + POSTFIX);
+        else if (cmd[index] == ':')
+        {
+            index++;
+            ch->setTopic(&cmd[index]);
+        }
+        ii = ch->getTopic();
+        ch->send_msg_in_channel(ii);
 
     }
-    //ila makanch f cahnnel chi topic oja odar topic #ch :sdfsdfasd ghadi isift l ga3 l users b anaho dar topic;
-
 }

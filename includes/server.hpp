@@ -44,6 +44,10 @@ class Server
         int     handle_nickname(Client &local_client/*,int i*/);
 
 
+    
+        //send error
+        void print_error(int fd, std::string msg);
+
         // hachi khas b channel 
         Channel* getchannel(const std::string &name_channel);
         int addchannel(Client* _client, const std::string &name_channel);

@@ -18,12 +18,15 @@ class Channel
         std::vector<Client *> operators;
         std::string password;
         std::string topic;
+        int limit;
         bool k;
-        // bool l;
+        bool l;
         // bool i;
     public:
-        void setFlagk(bool setflag);
-        bool getFlagk();
+        void setFlag_l(set flag_l);// TODO ana hbest nena
+        std::string getFlag_l();
+        void setFlag_k(bool setflag);
+        bool getFlag_k();
         void setPassword(std::string passw);
         std::string getPassword();
         void setTopic(std::string settopic);
@@ -35,7 +38,7 @@ class Channel
         void addclient(Client* _client);
         bool check_operator(Client* _client);
         int is_client(Client* _client);
-        void send_msg_in_channel(std::string& msg);
+        void send_msg_in_channel(std::string msg);
 };
 
 #endif

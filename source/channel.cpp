@@ -4,8 +4,8 @@ Channel::Channel(const std::string &name) : name_channel(name){}
 
 std::string Channel::getName_channel(){return name_channel;}
 
-void Channel::setFlagk(bool setflag){k = setflag;}
-bool Channel::getFlagk(){return k;}
+void Channel::setFlag_k(bool setflag){k = setflag;}
+bool Channel::getFlag_k(){return k;}
 
 void Channel::setPassword(std::string pass){password = pass;}
 std::string Channel::getPassword(){return password;}
@@ -71,7 +71,7 @@ int Channel::is_client(Client* _client)
     }
     return 0;
 }
-void Channel::send_msg_in_channel(std::string& msg)
+void Channel::send_msg_in_channel(std::string msg)
 {
     for(size_t i = 0; i < clients.size(); i++)
         send(clients[i]->fd, msg.c_str(), msg.length(), 0);
