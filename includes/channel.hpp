@@ -15,18 +15,29 @@ class Channel
     private:
         std::string name_channel;
         std::vector<Client *> clients;
-        std::vector<Client *> operators;
+        std::vector<Client *> op;
         std::string password;
         std::string topic;
-        int limit;
+        //mode tmp hado ghir bach n deir bihom test f join mol l mode i9dar ihtajhom
+        size_t limit;
         bool k;
         bool l;
-        // bool i;
+        bool i;
     public:
-        void setFlag_l(set flag_l);// TODO ana hbest nena
-        std::string getFlag_l();
+
+
+        void setLimit(size_t l);
+        size_t getLimit();
+
         void setFlag_k(bool setflag);
         bool getFlag_k();
+
+        void setFlag_l(bool flag_l);
+        bool getFlag_l();
+
+        void setFlag_i(bool flag_i);
+        bool getFlag_i();
+
         void setPassword(std::string passw);
         std::string getPassword();
         void setTopic(std::string settopic);
@@ -34,11 +45,15 @@ class Channel
         Channel(const std::string &name);
         std::string getName_channel();
         void addoperator(Client* _client); 
-        bool isoperator(Client* _client);
+        // bool isoperator(Client* _client);
         void addclient(Client* _client);
         bool check_operator(Client* _client);
         int is_client(Client* _client);
         void send_msg_in_channel(std::string msg);
+
+
+        std::vector<Client *> getOperators();
+        std::vector<Client *> getClients();
 };
 
 #endif

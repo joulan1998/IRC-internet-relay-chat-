@@ -242,7 +242,8 @@ void Server::start_server()
                         std::vector<std::string> split_buffer = split(new_buffer, ' ', false);
                         if (split_buffer.size() < 2)
                         {
-                            std::cout << "invalid argiment" << std::endl;
+                            // std::cout << "invalid argiment" << std::endl;
+                            print_error(local_client.fd,ERR_NEEDMOREPARAMS(local_client.nickname) );
                             continue;
                         }
                         if ( split_buffer[0] == "join")
@@ -317,40 +318,51 @@ std::vector<std::pair<std::string, std::string> > pars_join(std::vector<std::str
 
 void Server::join(Client *client, std::vector<std::string> &cmd)
 {
-    std::vector<std::pair<std::string, std::string> > channel_pass = pars_join(cmd) ;
+    std::vector<std::pair<std::string, std::string> > ch_pass = pars_join(cmd) ;
     std::string msg;
-    for (size_t i = 0; i < channel_pass.size(); i++)
+    for (size_t i = 0; i < ch_pass.size(); i++)
     {
-        Channel *check_channel = getchannel(channel_pass[i].first);
-        if(!check_channel)
+        Channel *ch = getchannel(ch_pass[i].first);
+        if(!ch)
         {
-            if (addchannel(client, channel_pass[i].first) == 0)
+            if (addchannel(client, ch_pass[i].first) == 0)
             {
-                check_channel = getchannel(channel_pass[i].first);
-                check_channel->addoperator(client);
-                if (channel_pass[i].second.empty())//TODO hada tah ghir tmp bach n testi bih
+                ch = getchannel(ch_pass[i].first);
+                ch->addoperator(client);
+                if (ch_pass[i].second.empty())//TODO hada tah ghir tmp bach n testi bih
                 {
-                    check_channel->setPassword(channel_pass[i].second);
-                    check_channel->setFlag_k(true);
+                    ch->setPassword(ch_pass[i].second);
+                    ch->setFlag_k(true);
                 }
+                ch->setFlag_l(true);
+                ch->setLimit(2);
+                // std::cout<< "( lIMIT    ====    "<< ch->getLimit() << " )"<<std::endl;
             }
         }
-        if (check_channel)
+
+        if (ch)
         {
-            if (check_channel->getFlag_k()  && check_channel->getPassword() != channel_pass[i].second)
+            if (ch->getFlag_l() && (ch->getLimit() == (ch->getOperators().size() + ch->getClients().size())))
             {
-                print_error(client->fd, ERR_BADCHANNELKEY(check_channel->getName_channel()));
+                // std::cout<< "(op + cl lIMIT    ====    "<< (ch->getOperators().size() + ch->getClients().size()) << " )"<<std::endl;
+                print_error(client->fd, ERR_CHANNELISFULL(client->nickname ,ch->getName_channel()));
+                    continue;
+            }
+            if (ch->getFlag_k()  && ch->getPassword() != ch_pass[i].second)
+            {
+                print_error(client->fd, ERR_BADCHANNELKEY(ch->getName_channel()));
                 continue;
             }
-            if(!check_channel->is_client(client) )
+            if(!ch->is_client(client) )
             {
-                if (!check_channel->isoperator(client))
-                    check_channel->addclient(client);
-                check_channel->send_msg_in_channel(RPL_JOIN(client->nickname,check_channel->getName_channel()));
-                print_error(client->fd, RPL_NAMREPLY(client->nickname, check_channel->getName_channel(), client->nickname));
-                print_error(client->fd, RPL_ENDOFNAMES(client->nickname, check_channel->getName_channel()));
+                if (!ch->check_operator(client))
+                    ch->addclient(client);
+                ch->send_msg_in_channel(RPL_JOIN(client->nickname,ch->getName_channel()));
+                print_error(client->fd, RPL_NAMREPLY(client->nickname, ch->getName_channel(), client->nickname));
+                print_error(client->fd, RPL_ENDOFNAMES(client->nickname, ch->getName_channel()));
             }
         }
+            // std::cout<< "( ----------------->>>   op + cl lIMIT    ====    "<< (ch->getOperators().size() + ch->getClients().size()) << " )"<<std::endl;
     }
 }
 

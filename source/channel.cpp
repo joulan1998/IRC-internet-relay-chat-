@@ -4,8 +4,17 @@ Channel::Channel(const std::string &name) : name_channel(name){}
 
 std::string Channel::getName_channel(){return name_channel;}
 
+bool Channel::getFlag_l(){return l;}
+void Channel::setFlag_l(bool flag_l){l = flag_l;}
+
+void Channel::setLimit(size_t l){limit = l;}
+size_t Channel::getLimit(){return limit;}
+
 void Channel::setFlag_k(bool setflag){k = setflag;}
 bool Channel::getFlag_k(){return k;}
+
+std::vector<Client *> Channel::getOperators(){return op;}
+std::vector<Client *> Channel::getClients(){return clients;}
 
 void Channel::setPassword(std::string pass){password = pass;}
 std::string Channel::getPassword(){return password;}
@@ -14,39 +23,39 @@ void Channel::addoperator(Client* _client)
 {
     bool check = false;
     
-    for (size_t i = 0; i < operators.size(); i++)
+    for (size_t i = 0; i < op.size(); i++)
     {
-        if (operators[i] == _client)
+        if (op[i] == _client)
         {
             check = true;
             break;
         }
     }
     if(!check)
-        operators.push_back(_client);
+        op.push_back(_client);
 }
 
 bool Channel::check_operator(Client* _client)
 {
-     for (size_t i = 0; i < operators.size(); i++)
+     for (size_t i = 0; i < op.size(); i++)
     {
-        if (operators[i] == _client)
+        if (op[i] == _client)
             return true;
     }
     return false;
 }
-bool Channel::isoperator(Client* _client){
-    bool check = false;
-    for (size_t i = 0; i < clients.size(); i++)
-    {
-        if (clients[i] == _client)
-        {
-            check = true;
-            break;
-        }
-    }
-    return check;
-}
+// bool Channel::isoperator(Client* _client){
+//     bool check = false;
+//     for (size_t i = 0; i < clients.size(); i++)
+//     {
+//         if (clients[i] == _client)
+//         {
+//             check = true;
+//             break;
+//         }
+//     }
+//     return check;
+// }
 
 void Channel::addclient(Client* _client)
 {

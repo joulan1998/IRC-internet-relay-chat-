@@ -24,7 +24,7 @@
 #define ERR_BADCHANNELKEY(channel)    PREFIX " 475 " + channel + " :Cannot join channel (+k)" + POSTFIX
 #define ERR_NEEDMOREPARAMS(client_name)    PREFIX " 461 " + client_name + " :Not enough parameters" POSTFIX  
 #define ERR_NOTONCHANNEL(target, channel)    PREFIX "442 " + target + " " + channel + " :You're not on that channel" POSTFIX
-
+#define ERR_CHANNELISFULL(client, channel)PREFIX " 471 " + client + " " + channel + " :Cannot join channel (+l)" POSTFIX
 /////////////////
 #define RPL_JOIN(sender, channel) (std::string(":")) + sender + " JOIN :" + channel + POSTFIX
 #define RPL_NAMREPLY(sender, channel, users)    PREFIX  " 353 " + sender + " = " + channel + " :" + users + POSTFIX
