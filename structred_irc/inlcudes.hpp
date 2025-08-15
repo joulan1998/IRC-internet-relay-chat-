@@ -49,10 +49,14 @@ class server
         void    socket_options();
         void    bind_server();
         void    set_listen();
-        void    handle_new_client(client &local_client, char *buffer, int index);
+        void    handle_new_client(client &local_client);
+        void    handle_password(client &local_client);
+        // void    handle_new_client(client &local_client, char *buffer, int index);
         void    handle_message(client &local_client, char *buffer, int i);
         int     handle_username(client &local_client);
         int    handle_nickname(client &local_client/*,int i*/);
+        char   *extract_pass(char *username);
+        void    free_table(char **table, size_t size);
 
 
 
@@ -63,6 +67,8 @@ class server
 };
 
 int string_to_int(const std::string &str);
+char	**ft_split(char const *s, char c);
+size_t table_size(char **table);
 // void show(void *xx)
 // {
 //     std::cout << xx << std::endl;
