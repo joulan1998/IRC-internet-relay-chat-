@@ -26,7 +26,7 @@
 #define ERR_NOTONCHANNEL(target, channel)    PREFIX "442 " + target + " " + channel + " :You're not on that channel" POSTFIX
 #define ERR_CHANNELISFULL(client, channel)PREFIX " 471 " + client + " " + channel + " :Cannot join channel (+l)" POSTFIX
 /////////////////
-#define RPL_JOIN(sender, channel) (std::string(":")) + sender + " JOIN :" + channel + POSTFIX
+#define RPL_JOIN(sender, channel) ":" + sender + " JOIN :" + channel + POSTFIX
 #define RPL_NAMREPLY(sender, channel, users)    PREFIX  " 353 " + sender + " = " + channel + " :" + users + POSTFIX
 #define RPL_ENDOFNAMES(sender, channel)        PREFIX  "366 " + sender + " " + channel + " :End of /NAMES list." POSTFIX
 #define RPL_NOTOPIC(sender, channel)PREFIX " 331 " + sender + " " + channel + " :No topic is set" + POSTFIX

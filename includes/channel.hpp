@@ -28,7 +28,6 @@ class Channel
 
         void setLimit(size_t l);
         size_t getLimit();
-
         void setFlag_k(bool setflag);
         bool getFlag_k();
 
@@ -51,6 +50,7 @@ class Channel
         int is_client(Client* _client);
         void send_msg_in_channel(std::string msg);
 
+        std::string list_of_client();
 
         std::vector<Client *> getOperators();
         std::vector<Client *> getClients();

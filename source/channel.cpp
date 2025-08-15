@@ -82,9 +82,36 @@ int Channel::is_client(Client* _client)
 }
 void Channel::send_msg_in_channel(std::string msg)
 {
+    std::cout << "\n\n\n\n" << "errrrrrrrrrroooooorrrrr"<< "\n\n\n\n";
+    for(size_t i = 0; i < op.size(); i++)
+    {
+        send(op[i]->fd, msg.c_str(), msg.length(), 0);
+    }
     for(size_t i = 0; i < clients.size(); i++)
+    {
         send(clients[i]->fd, msg.c_str(), msg.length(), 0);
+    }
 }
 
 std::string Channel::getTopic(){return topic;};
 void Channel::setTopic(std::string settopic){topic = settopic;}
+
+
+std::string Channel::list_of_client()
+{
+    std::string last_string;
+
+    for (size_t i = 0; i < op.size(); i++)
+    {
+        last_string += '@' + op[i]->nickname;
+        if(i != op.size())
+            last_string += " ";
+    }
+    for (size_t i = 0; i < clients.size(); i++)
+    {
+        last_string += clients[i]->nickname;
+        if(i != clients.size())
+            last_string += " ";
+    }
+    return last_string;
+}

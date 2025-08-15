@@ -135,8 +135,9 @@ int Server::handle_nickname(Client &local_client)
             return -1;
         }
     }
-
-    local_client.nickname = strdup(nick);
+    std::string n(nick);
+    cleanString(n);     //ana lidert ahada bach nehayed \r \n
+    local_client.nickname = strdup(n.c_str());
     std::cout << "SUCCESS! Nickname set to: " << local_client.nickname << std::endl;
     return 0;
 }
@@ -180,7 +181,9 @@ int Server::handle_username(Client &local_client)
             return -1;
         }
     }
-    local_client.username = strdup(username);
+    std::string user(username); 
+    cleanString(user);//ana lidert ahada bach nehayed \r \n
+    local_client.username = strdup(user.c_str());
     std::cout << "SUCCESS! Username set to: " << local_client.username << std::endl;
     return 0;
 }
@@ -358,7 +361,7 @@ void Server::join(Client *client, std::vector<std::string> &cmd)
                 if (!ch->check_operator(client))
                     ch->addclient(client);
                 ch->send_msg_in_channel(RPL_JOIN(client->nickname,ch->getName_channel()));
-                print_error(client->fd, RPL_NAMREPLY(client->nickname, ch->getName_channel(), client->nickname));
+                print_error(client->fd, RPL_NAMREPLY(client->nickname, ch->getName_channel(), ch->list_of_client()));
                 print_error(client->fd, RPL_ENDOFNAMES(client->nickname, ch->getName_channel()));
             }
         }
