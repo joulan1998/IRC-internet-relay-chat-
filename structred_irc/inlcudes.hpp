@@ -51,11 +51,11 @@ class server
         void    set_listen();
         void    handle_new_client(client &local_client);
         void    handle_password(client &local_client);
-        // void    handle_new_client(client &local_client, char *buffer, int index);
-        void    handle_message(client &local_client, char *buffer, int i);
-        int     handle_username(client &local_client);
-        int    handle_nickname(client &local_client/*,int i*/);
-        char   *extract_pass(char *username);
+        // void    handle_message(client &local_client, char *buffer, int i);
+        void    handle_message(client &local_client, size_t index);
+        void     handle_username(client &local_client);
+        // int     handle_username(client &local_client);
+        void    handle_nickname(client &local_client/*,int i*/);
         void    free_table(char **table, size_t size);
 
 
