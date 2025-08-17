@@ -28,6 +28,7 @@ class Channel
 
         void setLimit(size_t l);
         size_t getLimit();
+        
         void setFlag_k(bool setflag);
         bool getFlag_k();
 

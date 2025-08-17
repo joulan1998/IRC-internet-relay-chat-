@@ -25,10 +25,12 @@
 #define ERR_NEEDMOREPARAMS(client_name)    PREFIX " 461 " + client_name + " :Not enough parameters" POSTFIX  
 #define ERR_NOTONCHANNEL(target, channel)    PREFIX "442 " + target + " " + channel + " :You're not on that channel" POSTFIX
 #define ERR_CHANNELISFULL(client, channel)PREFIX " 471 " + client + " " + channel + " :Cannot join channel (+l)" POSTFIX
+#define ERR_UNKNOWNCOMMAND(command)    PREFIX "421 " + command + " :Unknown command" POSTFIX 
+
 /////////////////
 #define RPL_JOIN(sender, channel) ":" + sender + " JOIN :" + channel + POSTFIX
 #define RPL_NAMREPLY(sender, channel, users)    PREFIX  " 353 " + sender + " = " + channel + " :" + users + POSTFIX
-#define RPL_ENDOFNAMES(sender, channel)        PREFIX  "366 " + sender + " " + channel + " :End of /NAMES list." POSTFIX
+#define RPL_ENDOFNAMES(sender, channel)        PREFIX  " 366 " + sender + " " + channel + " :End of /NAMES list." POSTFIX
 #define RPL_NOTOPIC(sender, channel)PREFIX " 331 " + sender + " " + channel + " :No topic is set" + POSTFIX
 #define RPL_TOPIC(sender, channel, topic)PREFIX " 332 " + sender + " " + channel + " :" + topic + POSTFIX    
 
@@ -56,3 +58,15 @@ int string_to_int(const std::string &str);
 
 
 #endif
+
+
+//TODO DAKCHI LI KHASO ITEZAD 
+//client mayb9ach f struct iwli f server
+//auth ila dert enter katerdoz 3adi 
+// itezad host name khas blclient matalan ahmed!ahmed
+//itezad ipadress khas blclient 
+
+
+//TODO join acheno ba9i khasha
+// nedir check rela password
+// nedirchek 3ela limit

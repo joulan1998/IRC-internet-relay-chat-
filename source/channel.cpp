@@ -44,18 +44,7 @@ bool Channel::check_operator(Client* _client)
     }
     return false;
 }
-// bool Channel::isoperator(Client* _client){
-//     bool check = false;
-//     for (size_t i = 0; i < clients.size(); i++)
-//     {
-//         if (clients[i] == _client)
-//         {
-//             check = true;
-//             break;
-//         }
-//     }
-//     return check;
-// }
+
 
 void Channel::addclient(Client* _client)
 {
@@ -82,10 +71,10 @@ int Channel::is_client(Client* _client)
 }
 void Channel::send_msg_in_channel(std::string msg)
 {
-    std::cout << "\n\n\n\n" << "errrrrrrrrrroooooorrrrr"<< "\n\n\n\n";
     for(size_t i = 0; i < op.size(); i++)
     {
-        send(op[i]->fd, msg.c_str(), msg.length(), 0);
+        if(send(op[i]->fd, msg.c_str(), msg.length(), 0) == -1)
+            std::cerr<< "msg not send"<<std::endl;
     }
     for(size_t i = 0; i < clients.size(); i++)
     {

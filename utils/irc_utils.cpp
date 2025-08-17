@@ -68,7 +68,7 @@ std::vector<std::string> split(std::string &str, char delem, bool flag)
     {
         while(iss >> cmd)
         {
-            // cleanString(cmd);
+            cleanString(cmd);
             last_cmd.push_back(cmd);
         }
     }

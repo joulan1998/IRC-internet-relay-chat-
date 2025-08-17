@@ -241,18 +241,16 @@ void Server::start_server()
                     else //(*buffer)
                     {
                         std::string new_buffer(buffer);
-                        // cleanString(new_buffer);
+                        if (new_buffer.empty())
+                            return;
                         std::vector<std::string> split_buffer = split(new_buffer, ' ', false);
-                        if (split_buffer.size() < 2)
-                        {
-                            // std::cout << "invalid argiment" << std::endl;
-                            print_error(local_client.fd,ERR_NEEDMOREPARAMS(local_client.nickname) );
-                            continue;
-                        }
-                        if ( split_buffer[0] == "join")
+                        if (split_buffer.size() && split_buffer[0] == "join")
                             join(&local_client, split_buffer);
-                        if (split_buffer[0] == "topic")
+                        else if (split_buffer.size() && split_buffer[0] == "topic")
                             topic(&local_client, buffer);
+                        else if(split_buffer.size())
+                            print_error(local_client.fd,ERR_UNKNOWNCOMMAND(split_buffer[0]) );
+
                         //  handle_message(local_client, buffer, i);
                     }
                 }
@@ -321,6 +319,11 @@ std::vector<std::pair<std::string, std::string> > pars_join(std::vector<std::str
 
 void Server::join(Client *client, std::vector<std::string> &cmd)
 {
+    if(cmd.size()<2)
+    {
+        print_error(client->fd, ERR_NEEDMOREPARAMS(client->username));
+        return;
+    }
     std::vector<std::pair<std::string, std::string> > ch_pass = pars_join(cmd) ;
     std::string msg;
     for (size_t i = 0; i < ch_pass.size(); i++)
@@ -339,7 +342,6 @@ void Server::join(Client *client, std::vector<std::string> &cmd)
                 }
                 ch->setFlag_l(true);
                 ch->setLimit(2);
-                // std::cout<< "( lIMIT    ====    "<< ch->getLimit() << " )"<<std::endl;
             }
         }
 
@@ -347,7 +349,6 @@ void Server::join(Client *client, std::vector<std::string> &cmd)
         {
             if (ch->getFlag_l() && (ch->getLimit() == (ch->getOperators().size() + ch->getClients().size())))
             {
-                // std::cout<< "(op + cl lIMIT    ====    "<< (ch->getOperators().size() + ch->getClients().size()) << " )"<<std::endl;
                 print_error(client->fd, ERR_CHANNELISFULL(client->nickname ,ch->getName_channel()));
                     continue;
             }
@@ -365,7 +366,6 @@ void Server::join(Client *client, std::vector<std::string> &cmd)
                 print_error(client->fd, RPL_ENDOFNAMES(client->nickname, ch->getName_channel()));
             }
         }
-            // std::cout<< "( ----------------->>>   op + cl lIMIT    ====    "<< (ch->getOperators().size() + ch->getClients().size()) << " )"<<std::endl;
     }
 }
 
@@ -376,7 +376,7 @@ void Server::join(Client *client, std::vector<std::string> &cmd)
 
 void Server::print_error(int fd, std::string msg)
 {
-    if (send(fd, msg.c_str(), msg.length(), 0))
+    if (send(fd, msg.c_str(), msg.length(), 0) == -1)
         std::cout << "msg not send "<< std::endl;
 }
 
