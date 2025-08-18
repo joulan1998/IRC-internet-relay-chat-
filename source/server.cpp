@@ -268,7 +268,6 @@ Channel* Server::getchannel(const std::string &name_channel)
         if (!name_channel.empty() && name_channel == channels[i].getName_channel())
             return &channels[i];
     }
-    std::cout << "channel not found :: "<< name_channel<< std::endl;
     return NULL;
 }
 
@@ -321,7 +320,7 @@ void Server::join(Client *client, std::vector<std::string> &cmd)
 {
     if(cmd.size()<2)
     {
-        print_error(client->fd, ERR_NEEDMOREPARAMS(client->username));
+        print_error(client->fd, ERR_NEEDMOREPARAMS(cmd[0]));
         return;
     }
     std::vector<std::pair<std::string, std::string> > ch_pass = pars_join(cmd) ;
@@ -329,24 +328,39 @@ void Server::join(Client *client, std::vector<std::string> &cmd)
     for (size_t i = 0; i < ch_pass.size(); i++)
     {
         Channel *ch = getchannel(ch_pass[i].first);
+        if (ch && (ch->is_client(client) || ch->check_operator(client)))
+        {
+            print_error(client->fd, ERR_USERONCHANNEL(ch->getName_channel(), client->nickname));
+            continue;
+        }
         if(!ch)
         {
+            
             if (addchannel(client, ch_pass[i].first) == 0)
             {
                 ch = getchannel(ch_pass[i].first);
                 ch->addoperator(client);
+
+                for (size_t i = 0 ; i < ch->getOperators().size(); i++)
+                {
+                    std::cout <<  "op adress -->>>>>    "<< &ch->getOperators()[i]->fd<< std::endl;
+                }
                 if (ch_pass[i].second.empty())//TODO hada tah ghir tmp bach n testi bih
                 {
                     ch->setPassword(ch_pass[i].second);
                     ch->setFlag_k(true);
                 }
-                ch->setFlag_l(true);
-                ch->setLimit(2);
+                // ch->setFlag_l(true);
+                // ch->setLimit(2);
             }
         }
 
         if (ch)
         {
+            for (size_t i = 0 ; i < ch->getOperators().size(); i++)
+            {
+                std::cout <<  "op adress -->>>>>    "<< &ch->getOperators()[i]->fd<< std::endl;
+            }
             if (ch->getFlag_l() && (ch->getLimit() == (ch->getOperators().size() + ch->getClients().size())))
             {
                 print_error(client->fd, ERR_CHANNELISFULL(client->nickname ,ch->getName_channel()));
@@ -361,10 +375,15 @@ void Server::join(Client *client, std::vector<std::string> &cmd)
             {
                 if (!ch->check_operator(client))
                     ch->addclient(client);
+                std:: cout <<"hhhhhhhhhhhhhhhhh\n";
+
                 ch->send_msg_in_channel(RPL_JOIN(client->nickname,ch->getName_channel()));
+                std::cout << "hhhhhhhhhhhhhhhhh111111\n";
                 print_error(client->fd, RPL_NAMREPLY(client->nickname, ch->getName_channel(), ch->list_of_client()));
                 print_error(client->fd, RPL_ENDOFNAMES(client->nickname, ch->getName_channel()));
             }
+
+        
         }
     }
 }
@@ -380,15 +399,21 @@ void Server::print_error(int fd, std::string msg)
         std::cout << "msg not send "<< std::endl;
 }
 
+
 //TODO KHASNI NZID ILA CHANNEL KHAS GHIR ADMIN LI BDEL TOPIC
 void Server::topic(Client *client,  std::string cmd)
 {
     std::vector<std::string> new_cmd = split(cmd, ' ',false);
-    if (new_cmd.size() == 1 && new_cmd[0] == "topic ")
+    if(new_cmd.size() < 2)
     {
-        print_error(client->fd, ERR_NEEDMOREPARAMS(client->nickname));
+        print_error(client->fd, ERR_NEEDMOREPARAMS(new_cmd[0]));
         return;
     }
+    // if (new_cmd.size() == 1 && new_cmd[0] == "topic ")
+    // {
+    //     print_error(client->fd, ERR_NEEDMOREPARAMS(client->nickname));
+    //     return;
+    // }
     Channel *ch = getchannel(new_cmd[1]);
     if (!ch)
     {

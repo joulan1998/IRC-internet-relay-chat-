@@ -73,6 +73,10 @@ void Channel::send_msg_in_channel(std::string msg)
 {
     for(size_t i = 0; i < op.size(); i++)
     {
+        // std::cout <<" ------------------------------->"<<msg.c_str()<< "   "<< i <<std::endl;
+        std::cout <<" ------------------------------->"<< &op[i]->fd <<std::endl;
+        // std::cout <<" ------------------------------->"<<op.size() << std::endl << op[i]->fd <<std::endl;
+        // std::cout <<" ------------------------------->"<<msg.length() <<std::endl;
         if(send(op[i]->fd, msg.c_str(), msg.length(), 0) == -1)
             std::cerr<< "msg not send"<<std::endl;
     }
