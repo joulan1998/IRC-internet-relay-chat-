@@ -13,19 +13,19 @@ size_t Channel::getLimit(){return limit;}
 void Channel::setFlag_k(bool setflag){k = setflag;}
 bool Channel::getFlag_k(){return k;}
 
-std::vector<Client *> Channel::getOperators(){return op;}
-std::vector<Client *> Channel::getClients(){return clients;}
+std::vector<Client > Channel::getOperators(){return op;}
+std::vector<Client > Channel::getClients(){return clients;}
 
 void Channel::setPassword(std::string pass){password = pass;}
 std::string Channel::getPassword(){return password;}
 
-void Channel::addoperator(Client* _client)
+void Channel::addoperator(Client _client)
 {
     bool check = false;
     
     for (size_t i = 0; i < op.size(); i++)
     {
-        if (op[i] == _client)
+        if (op[i].fd == _client.fd)
         {
             check = true;
             break;
@@ -35,23 +35,23 @@ void Channel::addoperator(Client* _client)
         op.push_back(_client);
 }
 
-bool Channel::check_operator(Client* _client)
+bool Channel::check_operator(Client _client)
 {
      for (size_t i = 0; i < op.size(); i++)
     {
-        if (op[i] == _client)
+        if (op[i].fd == _client.fd)
             return true;
     }
     return false;
 }
 
 
-void Channel::addclient(Client* _client)
+void Channel::addclient(Client _client)
 {
     bool check = false;
     for (size_t i = 0; i < clients.size(); i++)
     {
-        if (clients[i] == _client)
+        if (clients[i].fd == _client.fd)
         {
             check = true;
             break;
@@ -60,11 +60,11 @@ void Channel::addclient(Client* _client)
     if(!check)
         clients.push_back(_client);
 }
-int Channel::is_client(Client* _client)
+int Channel::is_client(Client _client)
 {
     for (size_t i = 0; i < clients.size(); i++)
     {
-        if(clients[i] == _client)
+        if(clients[i].fd == _client.fd)
             return 1;
     }
     return 0;
@@ -73,12 +73,12 @@ void Channel::send_msg_in_channel(std::string msg)
 {
     for(size_t i = 0; i < op.size(); i++)
     {
-        if(send(op[i]->fd, msg.c_str(), msg.length(), 0) == -1)
+        if(send(op[i].fd, msg.c_str(), msg.length(), 0) == -1)
             std::cerr<< "msg not send"<<std::endl;
     }
     for(size_t i = 0; i < clients.size(); i++)
     {
-        send(clients[i]->fd, msg.c_str(), msg.length(), 0);
+        send(clients[i].fd, msg.c_str(), msg.length(), 0);
     }
 }
 
@@ -92,13 +92,13 @@ std::string Channel::list_of_client()
 
     for (size_t i = 0; i < op.size(); i++)
     {
-        last_string += '@' + op[i]->nickname;
+        last_string += '@' + op[i].nickname;
         if(i != op.size())
             last_string += " ";
     }
     for (size_t i = 0; i < clients.size(); i++)
     {
-        last_string += clients[i]->nickname;
+        last_string += clients[i].nickname;
         if(i != clients.size())
             last_string += " ";
     }

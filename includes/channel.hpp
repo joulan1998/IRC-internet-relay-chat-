@@ -14,8 +14,8 @@ class Channel
 {
     private:
         std::string name_channel;
-        std::vector<Client *> clients;
-        std::vector<Client *> op;
+        std::vector<Client > clients;
+        std::vector<Client > op;
         std::string password;
         std::string topic;
         //mode tmp hado ghir bach n deir bihom test f join mol l mode i9dar ihtajhom
@@ -44,17 +44,17 @@ class Channel
         std::string getTopic();
         Channel(const std::string &name);
         std::string getName_channel();
-        void addoperator(Client* _client); 
+        void addoperator(Client _client); 
         // bool isoperator(Client* _client);
-        void addclient(Client* _client);
-        bool check_operator(Client* _client);
-        int is_client(Client* _client);
+        void addclient(Client _client);
+        bool check_operator(Client _client);
+        int is_client(Client _client);
         void send_msg_in_channel(std::string msg);
 
         std::string list_of_client();
 
-        std::vector<Client *> getOperators();
-        std::vector<Client *> getClients();
+        std::vector<Client > getOperators();
+        std::vector<Client > getClients();
 };
 
 #endif
