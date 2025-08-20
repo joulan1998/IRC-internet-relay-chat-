@@ -24,8 +24,8 @@ class Channel
         bool l;
         bool i;
     public:
-        Channel(const std::string &name);
-        
+
+
         void setLimit(size_t l);
         size_t getLimit();
         
@@ -40,12 +40,10 @@ class Channel
 
         void setPassword(std::string passw);
         std::string getPassword();
-
         void setTopic(std::string settopic);
         std::string getTopic();
-
+        Channel(const std::string &name);
         std::string getName_channel();
-
         void addoperator(Client _client); 
         // bool isoperator(Client* _client);
         void addclient(Client _client);

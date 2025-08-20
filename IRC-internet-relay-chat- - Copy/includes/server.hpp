@@ -38,14 +38,10 @@ class Server
         void    socket_options();
         void    bind_server();
         void    set_listen();
-        void    handle_new_client(Client &local_client);
-        void    handle_password(Client &local_client);
+        void    handle_new_client(Client &local_client, char *buffer, int index);
         void    handle_message(Client &local_client, char *buffer, int i);
-        void    handle_message(Client &local_client, size_t index);
-        void     handle_username(Client &local_client);
-        // int     handle_username(client &local_client);
-        void    handle_nickname(Client &local_client/*,int i*/);
-        void    free_table(char **table, size_t size);
+        int     handle_username(Client &local_client);
+        int     handle_nickname(Client &local_client/*,int i*/);
 
 
     
@@ -62,10 +58,11 @@ class Server
         
 };
 std::vector<std::pair<std::string, std::string> > pars_join(std::vector<std::string> &cmd);
+// void show(void *xx)
+// {
+//     std::cout << xx << std::endl;
+// }
 
-int string_to_int(const std::string &str);
-char	**ft_split(char const *s, char c);
-size_t table_size(char **table);
 
 
 #endif
