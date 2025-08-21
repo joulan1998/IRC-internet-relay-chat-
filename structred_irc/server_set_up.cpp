@@ -65,23 +65,25 @@ void    server::handle_message(client &local_client, size_t index)
    char buffer[1024];
     if (recv(local_client.fd, buffer, 1024, 0) < 0)
         throw(std::runtime_error("recv_error : " + std::string(strerror(errno))));
-    if ( !buffer || !*buffer)
+    if ( /*!buffer || */!(*buffer))
     {
+        puts(":outside !!!!!");
         this->clients.erase(this->clients.begin() + index);
         this->fds.erase(this->fds.begin() + index);
         close(local_client.fd);
-        exit(8);
+        // exit(8);
     }
     if (strncmp("exit\n", buffer, 5) == 0)
         exit(9);
     std::cout << "Client " << local_client.fd << " :" << " THE NICKNAME :" << local_client.nickname << " the username : " << local_client.username  << " THE MESSAGE :" << buffer;
+    memset(buffer, 0, 1024);
 }
 
 
 void server::start_server()
 {
     create_socket();
-    // set_non_clocking();
+    set_non_clocking();
     set_socket_addr();
     socket_options();
     bind_server();
