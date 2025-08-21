@@ -13,7 +13,7 @@ void Server::create_socket()
     this->_socket_fd = local_socket;
 }
 
-void Server::set_non_clocking()
+void Server::set_non_blocking()
 {
     fcntl(this->_socket_fd, F_SETFL, O_NONBLOCK);
 }
@@ -191,7 +191,7 @@ int Server::handle_username(Client &local_client)
 void Server::start_server()
 {
     create_socket();
-    set_non_clocking();
+    set_non_blocking();
     set_socket_addr();
     socket_options();
     bind_server();

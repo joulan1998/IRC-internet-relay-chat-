@@ -33,7 +33,7 @@ class Server
         Server(std::string port, std::string password);
         void    start_server();
         void    create_socket();
-        void    set_non_clocking();
+        void    set_non_blocking();
         void    set_socket_addr();
         void    socket_options();
         void    bind_server();
