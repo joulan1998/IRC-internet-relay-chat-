@@ -27,7 +27,8 @@
 #define ERR_CHANNELISFULL(client, channel)PREFIX " 471 " + client + " " + channel + " :Cannot join channel (+l)" POSTFIX
 #define ERR_UNKNOWNCOMMAND(command)    PREFIX "421 " + command + " :Unknown command" POSTFIX 
 #define ERR_USERONCHANNEL(channel, target)    PREFIX "443 " + channel + " " + target + " :is already on channel" POSTFIX
-
+#define ERR_CHANOPRIVSNEEDED(channel)    PREFIX "482 " + channel + " :You're not channel operator" POSTFIX
+#define ERR_INVITEONLYCHAN(client, channel)PREFIX " 473 " + client + " " + channel + " :Cannot join channel (+i)" POSTFIX
 /////////////////
 #define RPL_JOIN(sender, channel) ":" + sender + " JOIN :" + channel + POSTFIX
 #define RPL_NAMREPLY(sender, channel, users)    PREFIX  " 353 " + sender + " = " + channel + " :" + users + POSTFIX

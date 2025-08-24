@@ -205,17 +205,19 @@ void Server::start_server()
                 {
                     Client &local_client = this->clients[i];
                     fcntl(local_client.fd, F_SETFL, O_NONBLOCK);
-                        memset(buffer, 0,1024);
-                        if (recv(local_client.fd, buffer,1024, 0) < 0 )
-                            throw(std::runtime_error("poll_error : " + std::string(strerror(errno))));
-                        std::string new_buffer(buffer);
+                    if (recv(local_client.fd, buffer,1024, 0) < 0 )
+                        throw(std::runtime_error("poll_error : " + std::string(strerror(errno))));
                     // if (!local_client.authenticated && local_client.fd != this->_socket_fd)
                     //     handle_new_client(local_client, buffer, i);
                     // if ((this->fds[i].revents & POLLIN) && (local_client.fd != this->_socket_fd) && (local_client.authenticated) && (local_client.fd != this->_socket_fd))
+                    // {
                         memset(buffer, 0,1024);
+                        std::string new_buffer(buffer);
+                        std::cout<< new_buffer<<std::endl;
                         recv(local_client.fd, buffer, 1024, 0);
                         pars_cmd(buffer, local_client);
                     // }
+                    
                 }
             }
         }
@@ -253,13 +255,11 @@ Channel* Server::getchannel(const std::string &name_channel)
 int Server::addchannel(Client _client, const std::string &name_channel)
 {
 
-    std::cout<<"------------------>"<< name_channel<<std::endl;
     if (name_channel[0] == '#' && name_channel[1] != '\0')
         channels.push_back(Channel(name_channel));
     else
     {
-        std::string msg = ERR_NOSUCHCHANNEL(name_channel);
-        send(_client.fd, msg.c_str(), msg.length(), 0);
+        print_error(_client.fd, ERR_NOSUCHCHANNEL(name_channel));
         return (1);
     }
     return 0;
@@ -274,13 +274,10 @@ std::vector<std::pair<std::string, std::string> > pars_join(std::vector<std::str
     if (cmd.size() > 2){keys = split(cmd[2], ',', true);}
     
     channels = split(cmd[1], ',', true);
-    std::cout << "----------------------------------\n";
-
     for (size_t i = 0; i < channels.size(); i++)
     {
         std::cout << channels[i] << std::endl;
     }
-    std::cout << "----------------------------------\n";
     for(size_t j = 0; j < channels.size(); j++)
     {
         password = "";
@@ -296,7 +293,7 @@ std::vector<std::pair<std::string, std::string> > pars_join(std::vector<std::str
 
 void Server::join(Client &client, std::vector<std::string> &cmd)
 {
-    if(cmd.size()<2)
+    if(cmd.size() < 2 )
     {
         print_error(client.fd, ERR_NEEDMOREPARAMS(client.username));
         return;
@@ -323,13 +320,18 @@ void Server::join(Client &client, std::vector<std::string> &cmd)
                     ch->setPassword(ch_pass[i].second);
                     ch->setFlag_k(true);
                 }
-                // ch->setFlag_l(true);
-                // ch->setLimit(2);
+                ch->setFlag_l(true);
+                ch->setLimit(2);
             }
         }
 
         if (ch)
         {
+            if (ch->getFlag_i() && !(ch->is_invited(client)))
+            {
+                print_error(client.fd, ERR_INVITEONLYCHAN(client.nickname, ch->getName_channel()));
+                continue;
+            }
             if (ch->getFlag_l() && (ch->getLimit() == (ch->getOperators().size() + ch->getClients().size())))
             {
                 print_error(client.fd, ERR_CHANNELISFULL(client.nickname ,ch->getName_channel()));
@@ -390,7 +392,6 @@ void Server::topic(Client &client,  std::string &cmd)
         print_error(client.fd, ERR_NOTONCHANNEL(client.nickname, new_cmd[1]));
         return;
     }
-
     if (new_cmd.size() == 2)
     {
         if (ch->getTopic().empty())
@@ -408,11 +409,14 @@ void Server::topic(Client &client,  std::string &cmd)
 
     if (new_cmd.size() > 2)
     {
+            //new
+        if (ch->getFlag_t() && !(ch->is_operator(client)))
+        {
+            print_error(client.fd, ERR_CHANOPRIVSNEEDED(new_cmd[1]));
+            return;
+        }
         size_t index = cmd.find(new_cmd[1]) + new_cmd[1].length();
         while(cmd[index] == ' ') index++;
-
-
-
         if (cmd[index] != ':')
             ch->setTopic(new_cmd[2] + POSTFIX);
         else if (cmd[index] == ':')
