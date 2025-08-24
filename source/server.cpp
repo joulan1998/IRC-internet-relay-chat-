@@ -184,14 +184,15 @@ void Server::start_server()
                         if (recv(local_client.fd, buffer,1024, 0) < 0 )
                             throw(std::runtime_error("poll_error : " + std::string(strerror(errno))));
                         std::string new_buffer(buffer);
-                    if (!local_client.authenticated && local_client.fd != this->_socket_fd)
-                        handle_new_client(local_client, buffer);
-                    if ((this->fds[i].revents & POLLIN) && (local_client.fd != this->_socket_fd) && (local_client.authenticated) && (local_client.fd != this->_socket_fd))
-                    {
+                    // if (!local_client.authenticated && local_client.fd != this->_socket_fd)
+                    //     handle_new_client(local_client, buffer);
+                    
+                    // if ((this->fds[i].revents & POLLIN) && (local_client.fd != this->_socket_fd) && (local_client.authenticated) && (local_client.fd != this->_socket_fd))
+                    // {
                         memset(buffer, 0,1024);
                         recv(local_client.fd, buffer, 1024, 0);
                         pars_cmd(buffer, local_client);
-                    }
+                    // }
                 }
             }
         }
