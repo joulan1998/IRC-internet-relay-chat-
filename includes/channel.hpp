@@ -23,13 +23,14 @@ class Channel
         bool k;
         bool l;
         bool i;
+        bool t;
     public:
         Channel(const std::string &name);
         
         void setLimit(size_t l);
         size_t getLimit();
         
-        void setFlag_k(bool setflag);
+        void setFlag_k(bool set_k);
         bool getFlag_k();
 
         void setFlag_l(bool flag_l);
@@ -37,6 +38,9 @@ class Channel
 
         void setFlag_i(bool flag_i);
         bool getFlag_i();
+
+        void setFlag_t(bool setflag);
+        bool getFlag_t();
 
         void setPassword(std::string passw);
         std::string getPassword();
@@ -49,7 +53,7 @@ class Channel
         void addoperator(Client _client); 
         // bool isoperator(Client* _client);
         void addclient(Client _client);
-        bool check_operator(Client _client);
+        bool is_operator(Client _client);
         int is_client(Client _client);
         void send_msg_in_channel(std::string msg);
 
