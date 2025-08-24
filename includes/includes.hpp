@@ -47,6 +47,7 @@ void cleanString(std::string &s);
 int string_to_int(const std::string &str);
 
 
+void to_upper(std::string &str);
 
 
 

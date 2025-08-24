@@ -49,8 +49,6 @@ class Server
         // int     handle_username(client &local_client);
         // void    handle_nickname(Client &local_client/*,int i*/);
         void    handle_nickname(Client &local_client, std::string value);
-        void    free_table(char **table, size_t size);
-
 
     
         //send error
@@ -60,8 +58,9 @@ class Server
         Channel* getchannel(const std::string &name_channel);
         int addchannel(Client _client, const std::string &name_channel);
         //hena kanbda l cmd
-        void join(Client client, std::vector<std::string> &cmd);
-        void topic(Client client, std::string cmd);
+        void pars_cmd(std::string buffer, Client &local_client);
+        void join(Client &client, std::vector<std::string> &cmd);
+        void topic(Client &client, std::string &cmd);
     // private:
         
 };

@@ -23,7 +23,7 @@ void Server::handle_nickname(Client &local_client, std::string value)
 
 void Server::handle_username(Client &local_client, std::string value)
 {
-    if (value.size() >= 4)
+    if (value.size() >= 4 && local_client.registred)
     {
         local_client.username = value;
         local_client.authenticated = true;
@@ -188,15 +188,9 @@ void Server::start_server()
                         handle_new_client(local_client, buffer);
                     if ((this->fds[i].revents & POLLIN) && (local_client.fd != this->_socket_fd) && (local_client.authenticated) && (local_client.fd != this->_socket_fd))
                     {
-                            //new function
-                        std::vector<std::string> split_buffer = split(new_buffer, ' ', false);
-                        if (split_buffer.size() && split_buffer[0] == "join")
-                            join(local_client, split_buffer);
-                        else if (split_buffer.size() && split_buffer[0] == "topic")
-                            topic(local_client, buffer);
-                        else if(split_buffer.size())
-                            print_error(local_client.fd,ERR_UNKNOWNCOMMAND(split_buffer[0]) );
-
+                        memset(buffer, 0,1024);
+                        recv(local_client.fd, buffer, 1024, 0);
+                        pars_cmd(buffer, local_client);
                     }
                 }
             }
@@ -206,7 +200,18 @@ void Server::start_server()
 
 }
 
-
+void Server::pars_cmd(std::string buffer, Client &local_client)
+{
+    std::vector<std::string> split_buffer = split(buffer, ' ', false);
+    if (!split_buffer.size()) return;
+    to_upper(split_buffer[0]);
+    if (split_buffer.size() && split_buffer[0] == "JOIN")
+        join(local_client, split_buffer);
+    else if (split_buffer.size() && split_buffer[0] == "TOPIC")
+        topic(local_client, buffer);
+    else if(split_buffer.size())
+        print_error(local_client.fd,ERR_UNKNOWNCOMMAND(split_buffer[0]) );
+}
 
 
 //////////////channel
@@ -265,7 +270,7 @@ std::vector<std::pair<std::string, std::string> > pars_join(std::vector<std::str
 
 }
 
-void Server::join(Client client, std::vector<std::string> &cmd)
+void Server::join(Client &client, std::vector<std::string> &cmd)
 {
     if(cmd.size()<2)
     {
@@ -340,7 +345,7 @@ void Server::print_error(int fd, std::string msg)
 
 
 //TODO KHASNI NZID ILA CHANNEL KHAS GHIR ADMIN LI BDEL TOPIC
-void Server::topic(Client client,  std::string cmd)
+void Server::topic(Client &client,  std::string &cmd)
 {
     std::vector<std::string> new_cmd = split(cmd, ' ',false);
     if(new_cmd.size() < 2)
