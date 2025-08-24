@@ -10,6 +10,13 @@ bool Channel::getFlag_k(){return k;}
 bool Channel::getFlag_l(){return l;}
 void Channel::setFlag_l(bool flag_l){l = flag_l;}
 
+bool Channel::getFlag_i(){return i;}
+void Channel::setFlag_i(bool flag_i){i = flag_i;}
+
+bool Channel::getFlag_t(){return t;}
+void Channel::setFlag_t(bool flag_t){t = flag_t;}
+
+
 void Channel::setLimit(size_t l){limit = l;}
 size_t Channel::getLimit(){return limit;}
 
@@ -38,16 +45,21 @@ void Channel::addoperator(Client _client)
         op.push_back(_client);
 }
 
-bool Channel::is_operator(Client _client)
+void Channel::add_invited(Client _client)
 {
-     for (size_t i = 0; i < op.size(); i++)
+    bool check = false;
+    
+    for (size_t i = 0; i < invited.size(); i++)
     {
-        if (op[i].fd == _client.fd)
-            return true;
+        if (invited[i].fd == _client.fd)
+        {
+            check = true;
+            break;
+        }
     }
-    return false;
+    if(!check)
+        invited.push_back(_client);
 }
-
 
 void Channel::addclient(Client _client)
 {
@@ -63,7 +75,18 @@ void Channel::addclient(Client _client)
     if(!check)
         clients.push_back(_client);
 }
-int Channel::is_client(Client _client)
+
+bool Channel::is_operator(Client _client)
+{
+     for (size_t i = 0; i < op.size(); i++)
+    {
+        if (op[i].fd == _client.fd)
+            return true;
+    }
+    return false;
+}
+
+bool Channel::is_client(Client _client)
 {
     for (size_t i = 0; i < clients.size(); i++)
     {
@@ -72,6 +95,18 @@ int Channel::is_client(Client _client)
     }
     return false;
 }
+
+bool Channel::is_invited(Client _client)
+{
+    for (size_t i = 0; i < invited.size(); i++)
+    {
+        if(invited[i].fd == _client.fd)
+            return true;
+    }
+    return false;
+}
+
+
 void Channel::send_msg_in_channel(std::string msg)
 {
     for(size_t i = 0; i < op.size(); i++)
