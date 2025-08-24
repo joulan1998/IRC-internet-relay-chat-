@@ -15,10 +15,17 @@ size_t table_size(char **table)
 
 void Server::handle_nickname(Client &local_client, std::string value)
 {
-    if (value.size() >= 4)
+    // if (value.size() >= 4)
+    //     local_client.nickname = value;
+    if (!local_client.registred)
+        std::cout << "please enter password in first !"<< std::endl;
+    else if (value.empty())
+           exit(99);
+        // return;
+    else // (value.size() >= 4)
         local_client.nickname = value;
-    else 
-        std::cout << "error nikname"<< std::endl;
+    // else 
+    //     std::cout << "error nikname"<< std::endl;
 }
 
 void Server::handle_username(Client &local_client, std::string value)
@@ -93,9 +100,16 @@ void Server::bind_server()
         throw(std::runtime_error("bind_error : " + std::string(strerror(errno))));
     }
 }
-void Server::handle_password(Client &local_client, std::string value)
+void Server::handle_password(Client &local_client, std::string value/*,size_t index*/)
 {
-    if (local_client.registred)
+    // if(value.empty())
+    // {
+    //     close(local_client.fd);
+    //     this->clients.erase(this->clients.begin() + index);
+    //     this->fds.erase(this->fds.begin() + index);
+    // }
+
+     if (local_client.registred)
         std::cout << "you are already passed the password !" << std::endl;
     else if(!strncmp(this->_password.c_str(), value.c_str(), value.size()))
         local_client.registred = true;
@@ -104,24 +118,35 @@ void Server::handle_password(Client &local_client, std::string value)
 
 
 // void Server::handle_new_client(Client &local_client)
-void Server::handle_new_client(Client &local_client, std::string buffer)
+void Server::handle_new_client(Client &local_client, std::string buffer, size_t index)
 {
     std::string temp_buff(buffer);
     std::vector<std::string> table = split(temp_buff, ' ' ,false);
     // puts("inside new coonn ");
     // printf("BEFORE ::the result is %d\n", local_client.authenticated);
-    if (!strncmp(table[0].c_str(), "PASS\0", 5) && (table[1].size()))
-        handle_password(local_client, table[1]);
+    if(temp_buff.empty())
+    {
+        close(local_client.fd);
+        this->clients.erase(this->clients.begin() + index);
+        this->fds.erase(this->fds.begin() + index);
+        return;
+    }
+    else if ((table[1].empty()))
+        exit(11);
+        // return;
+    else if (!strncmp(table[0].c_str(), "PASS\0", 5) && (table[1].size()))
+        handle_password(local_client, table[1]/*, index*/);
     else if (!strncmp(table[0].c_str(), "NICK\0", 5))
         handle_nickname(local_client, table[1]);
     else if (!strncmp(table[0].c_str(), "USER\0", 5))
         handle_username(local_client, table[1]);
+        // exit(12);
     else
         puts("password error ");
     // printf("AFTER :: the result is %d\n", local_client.authenticated);
     // while (local_client.nickname == "")
     // while (local_client.username == "")
-    //     handle_username(local_client/*, i*/);
+    //     handle_username(local_client/*, i/*);
     // local_client.authenticated = true;
 }
 
@@ -185,10 +210,8 @@ void Server::start_server()
                             throw(std::runtime_error("poll_error : " + std::string(strerror(errno))));
                         std::string new_buffer(buffer);
                     // if (!local_client.authenticated && local_client.fd != this->_socket_fd)
-                    //     handle_new_client(local_client, buffer);
-                    
+                    //     handle_new_client(local_client, buffer, i);
                     // if ((this->fds[i].revents & POLLIN) && (local_client.fd != this->_socket_fd) && (local_client.authenticated) && (local_client.fd != this->_socket_fd))
-                    // {
                         memset(buffer, 0,1024);
                         recv(local_client.fd, buffer, 1024, 0);
                         pars_cmd(buffer, local_client);
