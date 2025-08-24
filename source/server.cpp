@@ -198,9 +198,10 @@ void Server::start_server()
                         if (recv(local_client.fd, buffer,1024, 0) < 0 )
                             throw(std::runtime_error("poll_error : " + std::string(strerror(errno))));
                         std::string new_buffer(buffer);
-                    if (!local_client.authenticated && local_client.fd != this->_socket_fd)
-                        handle_new_client(local_client, buffer, i);
+                    // if (!local_client.authenticated && local_client.fd != this->_socket_fd)
+                    //     handle_new_client(local_client, buffer, i);
                     // if ((this->fds[i].revents & POLLIN) && (local_client.fd != this->_socket_fd) && (local_client.authenticated) && (local_client.fd != this->_socket_fd))
+<<<<<<< HEAD
                     else 
                     {
                             //new function
@@ -216,6 +217,12 @@ void Server::start_server()
                         recv(local_client.fd, buffer, 1024, 0);
                         pars_cmd(buffer, local_client);
                     }
+=======
+                        memset(buffer, 0,1024);
+                        recv(local_client.fd, buffer, 1024, 0);
+                        pars_cmd(buffer, local_client);
+                    // }
+>>>>>>> 7e24fa15acdbfd46cd1a59220bf37100bdd3579d
                 }
             }
         }
@@ -306,7 +313,7 @@ void Server::join(Client &client, std::vector<std::string> &cmd)
     for (size_t i = 0; i < ch_pass.size(); i++)
     {
         Channel *ch = getchannel(ch_pass[i].first);
-        if (ch && (ch->is_client(client) || ch->check_operator(client)))
+        if (ch && (ch->is_client(client) || ch->is_operator(client)))
         {
             print_error(client.fd, ERR_USERONCHANNEL(ch->getName_channel(), client.nickname));
             continue;
@@ -342,7 +349,7 @@ void Server::join(Client &client, std::vector<std::string> &cmd)
             }
             if(!ch->is_client(client) )
             {
-                if (!ch->check_operator(client))
+                if (!ch->is_operator(client))
                     ch->addclient(client);
 
                 ch->send_msg_in_channel(RPL_JOIN(client.nickname,ch->getName_channel()));
@@ -375,7 +382,6 @@ void Server::topic(Client &client,  std::string &cmd)
     if(new_cmd.size() < 2)
     {
         print_error(client.fd, ERR_NEEDMOREPARAMS(client.nickname));
-
         return;
     }
  
@@ -385,11 +391,13 @@ void Server::topic(Client &client,  std::string &cmd)
         print_error(client.fd, ERR_NOSUCHCHANNEL(new_cmd[1]));
         return;
     }
-    if (!ch->is_client(client) ) //TODO && check is operator
+
+    if (!ch->is_client(client) && !ch->is_operator(client))
     {
         print_error(client.fd, ERR_NOTONCHANNEL(client.nickname, new_cmd[1]));
         return;
     }
+
     if (new_cmd.size() == 2)
     {
         if (ch->getTopic().empty())
@@ -403,12 +411,15 @@ void Server::topic(Client &client,  std::string &cmd)
             std::cout << ch->getTopic();
             return;
         }
-    } 
+    }
+
     if (new_cmd.size() > 2)
     {
-        std::string ii = cmd;
-        size_t index = ii.find(new_cmd[1]) + new_cmd[1].length();
+        size_t index = cmd.find(new_cmd[1]) + new_cmd[1].length();
         while(cmd[index] == ' ') index++;
+
+
+
         if (cmd[index] != ':')
             ch->setTopic(new_cmd[2] + POSTFIX);
         else if (cmd[index] == ':')
@@ -416,8 +427,6 @@ void Server::topic(Client &client,  std::string &cmd)
             index++;
             ch->setTopic(&cmd[index]);
         }
-        ii = ch->getTopic();
-        ch->send_msg_in_channel(ii);
-
+        ch->send_msg_in_channel(RPL_TOPIC(client.nickname, new_cmd[1], ch->getTopic()));
     }
 }
