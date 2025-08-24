@@ -197,13 +197,12 @@ void Server::start_server()
                         memset(buffer, 0,1024);
                         if (recv(local_client.fd, buffer,1024, 0) < 0 )
                             throw(std::runtime_error("poll_error : " + std::string(strerror(errno))));
-                        std::string new_buffer(buffer);
-                    // if (!local_client.authenticated && local_client.fd != this->_socket_fd)
-                    //     handle_new_client(local_client, buffer, i);
+                    if (!local_client.authenticated && local_client.fd != this->_socket_fd)
+                        handle_new_client(local_client, buffer, i);
                     // if ((this->fds[i].revents & POLLIN) && (local_client.fd != this->_socket_fd) && (local_client.authenticated) && (local_client.fd != this->_socket_fd))
-<<<<<<< HEAD
                     else 
                     {
+                        std::string new_buffer(buffer);
                             //new function
                         std::vector<std::string> split_buffer = split(new_buffer, ' ', false);
                         if (split_buffer.size() && split_buffer[0] == "join")
@@ -217,12 +216,7 @@ void Server::start_server()
                         recv(local_client.fd, buffer, 1024, 0);
                         pars_cmd(buffer, local_client);
                     }
-=======
-                        memset(buffer, 0,1024);
-                        recv(local_client.fd, buffer, 1024, 0);
-                        pars_cmd(buffer, local_client);
-                    // }
->>>>>>> 7e24fa15acdbfd46cd1a59220bf37100bdd3579d
+
                 }
             }
         }
