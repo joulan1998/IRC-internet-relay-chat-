@@ -18,41 +18,14 @@ void Server::handle_nickname(Client &local_client)
     char **table = NULL;
     char buffer[1024];
     bool result = false;
-
-    while (!result)
-    {
-        memset(buffer, 0, sizeof(buffer));
-        // free_table(table, table_size(table));      table freeing
-        ssize_t bytes_received = recv(local_client.fd, buffer, sizeof(buffer), 0);
-        if (bytes_received < 0)
-        {
-            if (errno == EAGAIN || errno == EWOULDBLOCK)
-                continue;
-        }
-        else if (bytes_received == 0)
-        {
-            // here where i should handle when CTRL + C pressed !
-                exit(11);
-                // continue;
-        }
-        // Split the received buffer into tokens
-        table = ft_split(buffer, ' ');
-        if (*table == NULL)
-            continue;
-        if ((table_size(table) == 2))
-        {
-            table[0][4] = '\0'; //to replace '\n' by split<
-            table[1][strlen(table[1])] = '\0'; //to replace '\n' by split<
-            if ((!strncmp(table[0], "NICK\0", 5)))
-            {
-                puts("NICKNAME handling done!!");
-                local_client.nickname = (table[1]);
-                result = true;
-                // return;
-            }
-        }
-    }
-    // should  Free allocated memory for table
+    if (!local_client.registred)
+        std::cout << "please enter password in first !"<< std::endl;
+    else if (value.empty())
+        return;
+    else if  (!value.empty())
+        local_client.nickname = value;
+    else 
+        std::cout << "error nikname"<< std::endl;
 }
 
 void Server::handle_username(Client &local_client)
@@ -157,59 +130,46 @@ void Server::bind_server()
         throw(std::runtime_error("bind_error : " + std::string(strerror(errno))));
     }
 }
-void Server::handle_password(Client &local_client)
-{
-    char **table = NULL;
-    char buffer[1024];
-    bool result = false;
 
-    // fcntl(local_client.fd, F_SETFL, O_NONBLOCK);
-    while (!result)
-    {
-        memset(buffer, 0, sizeof(buffer));
-        // free_table(table, table_size(table));      table freeing
-        ssize_t bytes_received = recv(local_client.fd, buffer, sizeof(buffer), 0);
-        if (bytes_received < 0)
-        {
-            if (errno == EAGAIN || errno == EWOULDBLOCK)
-                continue;
-        }
-        else if (bytes_received == 0)
-        {
-            // here where i should handle when CTRL + C pressed !
-                exit(11);
-                // continue;
-        }
-        // Split the received buffer into tokens
-        table = ft_split(buffer, ' ');
-        if (*table == NULL)
-            continue;
-        if ((table_size(table) == 2))
-        {
-            table[0][4] = '\0'; //to replace '\n' by split<
-            table[1][strlen(table[1])] = '\0'; //to replace '\n' by split<
-            if ((!strncmp(table[0], "PASS\0", 5)) && (!strncmp(table[1], this->_password.c_str(), strlen(table[1]+1))))
-            {
-                puts("PASSOWRD handling done!!");
-                result = true;
-                // return;
-            }
-        }
-    }
-    // should  Free allocated memory for table
+void Server::handle_password(Client &local_client, std::string value/*,size_t index*/)
+{
+    if(value.empty())
+        return;
+    else if (local_client.registred)
+        std::cout << "you are already passed the password !" << std::endl;
+    else if(!strncmp(this->_password.c_str(), value.c_str(), value.size()))
+        local_client.registred = true;
+    else 
+        std::cout << "handle password erroor  !" << std::endl;
+
 }
 
 
 
 void Server::handle_new_client(Client &local_client)
 {
-
-        handle_password(local_client);
-        while (local_client.nickname == "")
-            handle_nickname(local_client/*, i*/);
-        while (local_client.username == "")
-            handle_username(local_client/*, i*/);
-        local_client.authenticated = true;
+    std::string temp_buff(buffer);
+    std::vector<std::string> table = split(temp_buff, ' ' ,false);
+    if (table.empty())
+        return;
+    if(temp_buff.empty())
+    {
+        exit(94);
+        close(local_client.fd);
+        this->clients.erase(this->clients.begin() + index);
+        this->fds.erase(this->fds.begin() + index);
+        return;
+    }
+    else if (!strncmp(table[0].c_str(), "PASS\0", 5) /*&& (table[1].size())*/)
+    {
+        handle_password(local_client, table[1]/*, index*/);
+    }
+    else if (!strncmp(table[0].c_str(), "NICK\0", 5))
+        handle_nickname(local_client, table[1]);
+    else if (!strncmp(table[0].c_str(), "USER\0", 5))
+        handle_username(local_client, table[1]);
+    else
+        puts("unkonwn command during auth !");
 }
 
 
@@ -278,14 +238,18 @@ void Server::start_server()
                          std::string new_buffer(buffer);
                         if (new_buffer.empty())
                             return;
+                            //new function
                         std::vector<std::string> split_buffer = split(new_buffer, ' ', false);
                         if (split_buffer.size() && split_buffer[0] == "join")
                             join(local_client, split_buffer);
                         else if (split_buffer.size() && split_buffer[0] == "topic")
-                            topic(local_client, buffer);
+                            topic(local_client, split_buffer[1]);
                         else if(split_buffer.size())
                             print_error(local_client.fd,ERR_UNKNOWNCOMMAND(split_buffer[0]) );
 
+                        memset(buffer, 0,1024);
+                        recv(local_client.fd, buffer, 1024, 0);
+                        pars_cmd(buffer, local_client);
                     }
                 }
             }
