@@ -3,12 +3,14 @@
 #include <iostream>
 
 
-struct Client
+class Client
 {
-    int fd;
-    bool authenticated;
-    std::string nickname;
-    std::string username;
+    public:
+        int fd;
+        bool authenticated;
+        bool registred;
+        std::string nickname;
+        std::string username;
 };
 
 
