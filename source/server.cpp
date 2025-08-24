@@ -196,41 +196,16 @@ void Server::start_server()
                     fcntl(local_client.fd, F_SETFL, O_NONBLOCK);
                     if (recv(local_client.fd, buffer,1024, 0) < 0 )
                         throw(std::runtime_error("poll_error : " + std::string(strerror(errno))));
-                    // if (!local_client.authenticated && local_client.fd != this->_socket_fd)
-                    //     handle_new_client(local_client, buffer, i);
-                    // if ((this->fds[i].revents & POLLIN) && (local_client.fd != this->_socket_fd) && (local_client.authenticated) && (local_client.fd != this->_socket_fd))
-<<<<<<< HEAD
-                    // {
-=======
-<<<<<<< HEAD
-                    else 
+                    if (!local_client.authenticated && local_client.fd != this->_socket_fd)
+                        handle_new_client(local_client, buffer, i);
+                    if ((this->fds[i].revents & POLLIN) && (local_client.fd != this->_socket_fd) && (local_client.authenticated) && (local_client.fd != this->_socket_fd))
                     {
-                            //new function
-                        std::vector<std::string> split_buffer = split(new_buffer, ' ', false);
-                        if (split_buffer.size() && split_buffer[0] == "join")
-                            join(local_client, split_buffer);
-                        else if (split_buffer.size() && split_buffer[0] == "topic")
-                            topic(local_client, split_buffer[1]);
-                        else if(split_buffer.size())
-                            print_error(local_client.fd,ERR_UNKNOWNCOMMAND(split_buffer[0]) );
-
-                        memset(buffer, 0,1024);
-                        recv(local_client.fd, buffer, 1024, 0);
-                        pars_cmd(buffer, local_client);
-                    }
-=======
->>>>>>> ec6e845c5a4977a69787f30c1ba4801f2914f8c7
                         memset(buffer, 0,1024);
                         std::string new_buffer(buffer);
                         std::cout<< new_buffer<<std::endl;
                         recv(local_client.fd, buffer, 1024, 0);
                         pars_cmd(buffer, local_client);
-                    // }
-<<<<<<< HEAD
-                    
-=======
->>>>>>> 7e24fa15acdbfd46cd1a59220bf37100bdd3579d
->>>>>>> ec6e845c5a4977a69787f30c1ba4801f2914f8c7
+                    }
                 }
             }
         }
