@@ -11,6 +11,7 @@ class Client
         bool registred;
         std::string nickname;
         std::string username;
+        std::string hostname;
 };
 
 
