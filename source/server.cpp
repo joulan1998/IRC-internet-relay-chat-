@@ -194,7 +194,6 @@ void Server::start_server()
                 {
                     Client &local_client = this->clients[i];
                     fcntl(local_client.fd, F_SETFL, O_NONBLOCK);
-<<<<<<< HEAD
                         memset(buffer, 0,1024);
                         if (recv(local_client.fd, buffer,1024, 0) < 0 )
                             throw(std::runtime_error("poll_error : " + std::string(strerror(errno))));
@@ -213,24 +212,13 @@ void Server::start_server()
                         else if(split_buffer.size())
                             print_error(local_client.fd,ERR_UNKNOWNCOMMAND(split_buffer[0]) );
 
-=======
-                    if (recv(local_client.fd, buffer,1024, 0) < 0 )
-                        throw(std::runtime_error("poll_error : " + std::string(strerror(errno))));
-                    if (!local_client.authenticated && local_client.fd != this->_socket_fd)
-                        handle_new_client(local_client, buffer, i);
-                    if ((this->fds[i].revents & POLLIN) && (local_client.fd != this->_socket_fd) && (local_client.authenticated) && (local_client.fd != this->_socket_fd))
-                    {
->>>>>>> 66dc80a96c6c02b5e4a18ee9859133c64dedcf4d
-                        memset(buffer, 0,1024);
-                        std::string new_buffer(buffer);
+                        // memset(buffer, 0,1024);
+                        // std::string new_buffer(buffer);
+                        new_buffer = "heuiiii";
                         std::cout<< new_buffer<<std::endl;
                         recv(local_client.fd, buffer, 1024, 0);
                         pars_cmd(buffer, local_client);
                     }
-<<<<<<< HEAD
-
-=======
->>>>>>> 66dc80a96c6c02b5e4a18ee9859133c64dedcf4d
                 }
             }
         }
