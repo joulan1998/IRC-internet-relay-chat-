@@ -14,6 +14,7 @@
 #include "client.hpp"
 #include "channel.hpp"
 #define MAX_CLIENT 10
+#define LOG_FILE "connection_history.log"
 
 class Channel;
 class Client;
@@ -49,7 +50,8 @@ class Server
         // int     handle_username(client &local_client);
         // void    handle_nickname(Client &local_client/*,int i*/);
         void    handle_nickname(Client &local_client, std::string value);
-
+        void log_connection(Client& client_info);
+        void create_log_file(const std::string& filename);
     
         //send error
         void print_error(int fd, std::string msg);

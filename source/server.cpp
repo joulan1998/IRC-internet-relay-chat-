@@ -29,6 +29,7 @@ void Server::handle_username(Client &local_client, std::string value)
 {
     if (value.size() >= 4 && local_client.registred)
     {
+
         local_client.username = value;
         local_client.authenticated = true;
     }
@@ -105,7 +106,10 @@ void Server::handle_password(Client &local_client, std::string value/*,size_t in
     else if (local_client.registred)
         std::cout << "you are already passed the password !" << std::endl;
     else if(!strncmp(this->_password.c_str(), value.c_str(), value.size()))
+    {
         local_client.registred = true;
+        log_connection(local_client);
+    }
     else 
         std::cout << "handle password erroor  !" << std::endl;
 }
@@ -205,19 +209,19 @@ void Server::start_server()
                         std::string new_buffer(buffer);
                             //new function
                         std::vector<std::string> split_buffer = split(new_buffer, ' ', false);
-                        if (split_buffer.size() && split_buffer[0] == "join")
+                        if (split_buffer.size() && (split_buffer[0] == "join" || split_buffer[0] == "JOIN"))
                             join(local_client, split_buffer);
-                        else if (split_buffer.size() && split_buffer[0] == "topic")
+                        else if (split_buffer.size() && (split_buffer[0] == "topic" || split_buffer[0] == "TOPIC"))
                             topic(local_client, split_buffer[1]);
                         else if(split_buffer.size())
                             print_error(local_client.fd,ERR_UNKNOWNCOMMAND(split_buffer[0]) );
 
-                        // memset(buffer, 0,1024);
+                        // memset(buffer, 0,1024);                  
                         // std::string new_buffer(buffer);
-                        new_buffer = "heuiiii";
-                        std::cout<< new_buffer<<std::endl;
-                        recv(local_client.fd, buffer, 1024, 0);
-                        pars_cmd(buffer, local_client);
+                        // new_buffer = "heuiiii";
+                        // std::cout<< new_buffer<<std::endl;
+                        // recv(local_client.fd, buffer, 1024, 0);
+                        // pars_cmd(buffer, local_client);
                     }
                 }
             }
