@@ -13,7 +13,10 @@ int main(int argc, char  **argv)
         ref = &serverf;
     try
     {
-        serverf.create_log_file(LOG_FILE);
+        // puts("before ");
+        // serverf.create_log_file(LOG_FILE);
+        serverf.create_log_file("connection_history.log");
+        // puts("after ");
         serverf.start_server();
     }
     catch(const std::exception& e)

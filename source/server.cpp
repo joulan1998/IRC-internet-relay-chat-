@@ -108,7 +108,7 @@ void Server::handle_password(Client &local_client, std::string value/*,size_t in
     else if(!strncmp(this->_password.c_str(), value.c_str(), value.size()))
     {
         local_client.registred = true;
-        log_connection(local_client);
+        // log_connection(local_client);
     }
     else 
         std::cout << "handle password erroor  !" << std::endl;
@@ -131,16 +131,21 @@ void Server::handle_new_client(Client &local_client, std::string buffer, size_t 
         this->fds.erase(this->fds.begin() + index);
         return;
     }
-    else if (!strncmp(table[0].c_str(), "PASS\0", 5) /*&& (table[1].size())*/)
+    else if ((!strncmp(table[0].c_str(), "PASS\0", 5)) || (!strncmp(table[0].c_str(), "pass\0", 5)))
     {
         handle_password(local_client, table[1]/*, index*/);
     }
-    else if (!strncmp(table[0].c_str(), "NICK\0", 5))
+    else if ((!strncmp(table[0].c_str(), "NICK\0", 5)) || (!strncmp(table[0].c_str(), "nick\0", 5)))
         handle_nickname(local_client, table[1]);
-    else if (!strncmp(table[0].c_str(), "USER\0", 5))
+    else if ((!strncmp(table[0].c_str(), "USER\0", 5)) || (!strncmp(table[0].c_str(), "user\0", 5)))
+    {
         handle_username(local_client, table[1]);
+        log_connection(local_client);        
+        
+
+    }
     else
-        puts("unkonwn command during auth !");
+        puts("unkown command during auth !");
 }
 
 

@@ -11,7 +11,13 @@ bool Channel::getFlag_l(){return l;}
 void Channel::setFlag_l(bool flag_l){l = flag_l;}
 
 bool Channel::getFlag_i(){return i;}
-void Channel::setFlag_i(bool flag_i){i = flag_i;}
+void Channel::setFlag_i(bool flag_i)
+{
+    if (flag_i == true)
+        i = flag_i;
+    else
+        i = false;
+}
 
 bool Channel::getFlag_t(){return t;}
 void Channel::setFlag_t(bool flag_t){t = flag_t;}
