@@ -29,7 +29,7 @@ void Server::log_connection(Client& client_info)
 
         // Write to the log file using the client's username and IP address
         // Assuming your Client struct has a member for the username
-        log_file << "[" << time_str << "] New client connected: " << client_info.username << std::endl;
+        log_file << "[" << time_str << "] New client connected: " << client_info.get_username() << std::endl;
         puts("the reslt is written");
         log_file.close();
     }

@@ -45,7 +45,7 @@ class Server
         void    handle_password(Client &local_client, std::string value/*, size_t index*/);
         void    handle_message(Client &local_client, char *buffer, int i);
         void    handle_message(Client &local_client, size_t index);
-        void     handle_username(Client &local_client, std::string value);
+        void     handle_username(Client &local_client, std::vector<std::string> table);
         // void     handle_username(Client &local_client);
         // int     handle_username(client &local_client);
         // void    handle_nickname(Client &local_client/*,int i*/);
