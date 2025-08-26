@@ -129,13 +129,13 @@ void Server::handle_new_client(Client &local_client, std::string buffer, size_t 
         this->fds.erase(this->fds.begin() + index);
         return;
     }
-    else if (!strncmp(table[0].c_str(), "PASS\0", 5) /*&& (table[1].size())*/)
+    else if (!strncmp(table[0].c_str(), "PASS\0", 5) || !strncmp(table[0].c_str(), "pass\0", 5))
     {
         handle_password(local_client, table[1]/*, index*/);
     }
-    else if (!strncmp(table[0].c_str(), "NICK\0", 5))
+    else if (!strncmp(table[0].c_str(), "NICK\0", 5) || !strncmp(table[0].c_str(), "nick\0", 5))
         handle_nickname(local_client, table[1]);
-    else if (!strncmp(table[0].c_str(), "USER\0", 5))
+    else if (!strncmp(table[0].c_str(), "USER\0", 5) || !strncmp(table[0].c_str(), "user\0", 5))
         handle_username(local_client, table[1]);
     else
         puts("unkonwn command during auth !");
@@ -301,6 +301,11 @@ void Server::join(Client &client, std::vector<std::string> &cmd)
         }
         if(!ch)
         {
+            if (ch_pass[i].first[0] != '#')
+            {
+                print_error(client.fd, ERR_NOSUCHCHANNEL(ch_pass[i].first));
+                continue;;
+            }
             if (addchannel(client, ch_pass[i].first) == 0)
             {
                 ch = getchannel(ch_pass[i].first);
@@ -317,11 +322,11 @@ void Server::join(Client &client, std::vector<std::string> &cmd)
 
         if (ch)
         {
-            if (ch->getFlag_i() && !(ch->is_invited(client)))
-            {
-                print_error(client.fd, ERR_INVITEONLYCHAN(client.nickname, ch->getName_channel()));
-                continue;
-            }
+            // if (ch->getFlag_i() && !(ch->is_invited(client)))
+            // {
+            //     print_error(client.fd, ERR_INVITEONLYCHAN(client.nickname, ch->getName_channel()));
+            //     continue;
+            // }
             if (ch->getFlag_l() && (ch->getLimit() == (ch->getOperators().size() + ch->getClients().size())))
             {
                 print_error(client.fd, ERR_CHANNELISFULL(client.nickname ,ch->getName_channel()));
