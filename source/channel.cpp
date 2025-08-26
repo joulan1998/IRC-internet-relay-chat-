@@ -29,7 +29,7 @@ std::vector<Client > Channel::getClients(){return clients;}
 void Channel::setPassword(std::string pass){password = pass;}
 std::string Channel::getPassword(){return password;}
 
-void Channel::addoperator(Client _client)
+void Channel::addoperator(Client &_client)
 {
     bool check = false;
     
@@ -45,7 +45,7 @@ void Channel::addoperator(Client _client)
         op.push_back(_client);
 }
 
-void Channel::add_invited(Client _client)
+void Channel::add_invited(Client &_client)
 {
     bool check = false;
     
@@ -61,7 +61,7 @@ void Channel::add_invited(Client _client)
         invited.push_back(_client);
 }
 
-void Channel::addclient(Client _client)
+void Channel::addclient(Client &_client)
 {
     bool check = false;
     for (size_t i = 0; i < clients.size(); i++)
@@ -76,7 +76,7 @@ void Channel::addclient(Client _client)
         clients.push_back(_client);
 }
 
-bool Channel::is_operator(Client _client)
+bool Channel::is_operator(Client &_client)
 {
      for (size_t i = 0; i < op.size(); i++)
     {
@@ -86,7 +86,7 @@ bool Channel::is_operator(Client _client)
     return false;
 }
 
-bool Channel::is_client(Client _client)
+bool Channel::is_client(Client &_client)
 {
     for (size_t i = 0; i < clients.size(); i++)
     {
@@ -96,7 +96,7 @@ bool Channel::is_client(Client _client)
     return false;
 }
 
-bool Channel::is_invited(Client _client)
+bool Channel::is_invited(Client &_client)
 {
     for (size_t i = 0; i < invited.size(); i++)
     {

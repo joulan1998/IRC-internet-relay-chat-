@@ -51,13 +51,13 @@ class Channel
 
         std::string getName_channel();
         ///////////////
-        void addoperator(Client _client); 
-        void addclient(Client _client);
-        void add_invited(Client _client);
+        void addoperator(Client &_client); 
+        void addclient(Client &_client);
+        void add_invited(Client &_client);
         /////////////
-        bool is_operator(Client _client);
-        bool is_client(Client _client);
-        bool is_invited(Client _client);
+        bool is_operator(Client &_client);
+        bool is_client(Client &_client);
+        bool is_invited(Client &_client);
 
         void send_msg_in_channel(std::string msg);
 

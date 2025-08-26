@@ -196,7 +196,6 @@ void Server::start_server()
                 {
                     Client &local_client = this->clients[i];
                     fcntl(local_client.fd, F_SETFL, O_NONBLOCK);
-
                     memset(buffer, 0,1024);
                     if (recv(local_client.fd, buffer,1024, 0) < 0 )
                         throw(std::runtime_error("poll_error : " + std::string(strerror(errno))));
@@ -206,8 +205,6 @@ void Server::start_server()
                     else 
                     {
                         std::string new_buffer(buffer);
-                        std::cout<< new_buffer<<std::endl;
-                        recv(local_client.fd, buffer, 1024, 0);
                         pars_cmd(buffer, local_client);
                     }
                 }
@@ -227,7 +224,7 @@ void Server::pars_cmd(std::string buffer, Client &local_client)
         join(local_client, split_buffer);
     else if (split_buffer.size() && split_buffer[0] == "TOPIC")
         topic(local_client, buffer);
-    else if (split_buffer.size() && split_buffer[0] == "QUIT")
+    // else if (split_buffer.size() && split_buffer[0] == "QUIT")
         // quit(local_client, buffer);
     else if(split_buffer.size())
         print_error(local_client.fd,ERR_UNKNOWNCOMMAND(split_buffer[0]) );
