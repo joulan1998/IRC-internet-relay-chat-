@@ -190,7 +190,7 @@ void Server::start_server()
     // this->clients.push_back((Client){this->_socket_fd,false, true,"", "", "", "", ""});
     // this->clients.push_back((Client){this->_socket_fd,false, true,"", "", "", "", ""});
     this->clients.push_back(Client(this->_socket_fd)); // <<<<<< should set REGISTRED to true
-    
+
     puts(this->_password.c_str());
     size_t i =0;
     char buffer[1024];
@@ -211,18 +211,31 @@ void Server::start_server()
                     this->fds.push_back((pollfd){client_fd, POLLIN, 0});
                     this->clients.push_back(Client(client_fd));
                     // this->clients.push_back((Client){client_fd, false, false, "", "", "", "", ""});
+                    
+                    
                 }
                 else
                 {
                     Client &local_client = this->clients[i];
+                    //hadechi bach nejib host deyal wahed l user ///// /<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<------------------------------__________----------------------
+
+                    sockaddr_in* addr_in = (sockaddr_in*)&client_addr;
+                    char ip_str[INET_ADDRSTRLEN];
+                    inet_ntop(AF_INET, &(addr_in->sin_addr), ip_str, INET_ADDRSTRLEN);
+                    std::string client_ip(ip_str);
+                    local_client.set_host(client_ip);
+                    std::cout<< "--------- >>>>>> {"<<client_ip<<"} <<<<<< ----------"<< std::endl<<std::endl;
+
+
                     // fcntl(local_client.fd, F_SETFL, O_NONBLOCK);
                     fcntl(local_client.get_fd(), F_SETFL, O_NONBLOCK);
-                        memset(buffer, 0,1024);
-                        // if (recv(local_client.fd, buffer,1024, 0) < 0 )
-                        if (recv(local_client.get_fd(), buffer,1024, 0) < 0 )
-                            throw(std::runtime_error("poll_error : " + std::string(strerror(errno))));
+                    memset(buffer, 0,1024);
+                    // if (recv(local_client.fd, buffer,1024, 0) < 0 )
+                    if (recv(local_client.get_fd(), buffer,1024, 0) < 0 )
+                        throw(std::runtime_error("poll_error : " + std::string(strerror(errno))));
                     if (!local_client.get_authenticated() && local_client.get_fd() != this->_socket_fd)
                         handle_new_client(local_client, buffer, i);
+                    
                     // if ((this->fds[i].revents & POLLIN) && (local_client.fd != this->_socket_fd) && (local_client.authenticated) && (local_client.fd != this->_socket_fd))
                     else 
                     {
@@ -364,9 +377,22 @@ void Server::join(Client &client, std::vector<std::string> &cmd)
                 if (!ch->is_operator(client))
                     ch->addclient(client);
 
-                ch->send_msg_in_channel(RPL_JOIN(client.get_hostname(),ch->getName_channel()));
+                ch->send_msg_in_channel(RPL_JOIN((client.get_nickname() + "!" + client.get_username() + "@" + client.get_host()),ch->getName_channel()));
                 print_error(client.get_fd(), RPL_NAMREPLY(client.get_nickname(), ch->getName_channel(), ch->list_of_client()));
                 print_error(client.get_fd(), RPL_ENDOFNAMES(client.get_nickname(), ch->getName_channel()));
+                if (!ch->is_operator(client))
+                {
+                    if (ch->getTopic().empty())
+                    {
+                       print_error(client.get_fd(), RPL_NOTOPIC(client.get_nickname(), ch->getName_channel()));
+                    }
+                    else
+                    {
+                       print_error(client.get_fd(), RPL_TOPIC(client.get_nickname(), ch->getName_channel(), ch->getTopic()));
+                       std::cout << ch->getTopic();
+                    }
+                }
+                    
 
             }
         }

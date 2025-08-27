@@ -26,3 +26,7 @@ std::string Client::get_servername(void){return this->servername;};
 
 void Client::set_realname(std::string value){this->realname = value;};
 std::string Client::get_realname(void){return this->realname;}
+
+
+void Client::set_host(std::string value){this->host = value;};
+std::string Client::get_host(void){return this->host;}

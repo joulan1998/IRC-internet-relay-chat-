@@ -15,6 +15,7 @@ class Client
         std::string hostname;
         std::string servername;
         std::string realname;
+        std::string host;
     public:
         // Client( int fd ,bool registred, bool authenticated, std::string nickname, std::string username, std::string hostname, std::string servername, std::string realname);
         Client( int fd );
@@ -41,6 +42,9 @@ class Client
 
         void set_realname(std::string value);
         std::string get_realname(void);
+
+        void set_host(std::string value);
+        std::string get_host(void);
 };
 
 
