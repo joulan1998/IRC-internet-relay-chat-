@@ -43,6 +43,8 @@ class Channel
         void setFlag_t(bool setflag);
         bool getFlag_t();
 
+
+
         void setPassword(std::string passw);
         std::string getPassword();
 
@@ -65,6 +67,12 @@ class Channel
 
         std::vector<Client > getOperators();
         std::vector<Client > getClients();
+
+
+
+        // frenzy commands:
+        void removeOperator(Client &_client);
+        
 };
 
 #endif

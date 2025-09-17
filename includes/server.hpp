@@ -56,15 +56,20 @@ class Server
         //send error
         void print_error(int fd, std::string msg);
 
-        // hachi khas b channel 
-        Channel* getchannel(const std::string &name_channel);
-        int addchannel(Client _client, const std::string &name_channel);
-        //hena kanbda l cmd
-        void pars_cmd(std::string buffer, Client &local_client);
-        void join(Client &client, std::vector<std::string> &cmd);
-        void topic(Client &client, std::string &cmd);
-    // private:
+                // hachi khas b channel 
+                        Channel* getchannel(const std::string &name_channel);
+                                int addchannel(Client _client, const std::string &name_channel);
+                                        //hena kanbda l cmd
+                                                void pars_cmd(std::string buffer, Client &local_client);
+                                                        void join(Client &client, std::vector<std::string> &cmd);
+                                                                void topic(Client &client, std::string &cmd);
+                                                                    // private:
         
+        //frenzy commands:
+        void privmsg(Client &client, std::string &cmd);
+        Client* getClientByNick(const std::string &nickname);
+        void mode(Client &client, std::string &cmd);
+
 };
 std::vector<std::pair<std::string, std::string> > pars_join(std::vector<std::string> &cmd);
 

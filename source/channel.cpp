@@ -158,3 +158,13 @@ std::string Channel::list_of_client()
     }
     return last_string;
 }
+
+// frenzy commands
+void Channel::removeOperator(Client &_client) {
+    for (size_t i = 0; i < op.size(); ++i) {
+        if (op[i].get_fd() == _client.get_fd()) {
+            op.erase(op.begin() + i);
+            break;
+        }
+    }
+}
