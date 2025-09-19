@@ -6,8 +6,8 @@
       "type": "lldb",
       "request": "launch",
       "args": [],
-      "cwd": "/Users/ael-mejh/Desktop/IRC-internet-relay-chat-",
-      "program": "/Users/ael-mejh/Desktop/IRC-internet-relay-chat-/build/Debug/outDebug"
+      "cwd": "/home/ael-mejh/Desktop/IRC-internet-relay-chat-",
+      "program": "/home/ael-mejh/Desktop/IRC-internet-relay-chat-/build/Debug/outDebug"
     }
   ]
 }

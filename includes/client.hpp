@@ -5,7 +5,6 @@
 
 class Client
 {
-    // public:
     private:
         int fd;
         bool registred;

@@ -118,6 +118,27 @@
     "typeinfo": "cpp",
     "unordered_map": "cpp",
     "utility": "cpp",
-    "vector": "cpp"
+    "vector": "cpp",
+    "clocale": "cpp",
+    "strstream": "cpp",
+    "compare": "cpp",
+    "concepts": "cpp",
+    "condition_variable": "cpp",
+    "deque": "cpp",
+    "list": "cpp",
+    "set": "cpp",
+    "memory_resource": "cpp",
+    "numeric": "cpp",
+    "random": "cpp",
+    "fstream": "cpp",
+    "iomanip": "cpp",
+    "numbers": "cpp",
+    "ranges": "cpp",
+    "span": "cpp",
+    "thread": "cpp",
+    "cinttypes": "cpp",
+    "typeindex": "cpp",
+    "valarray": "cpp",
+    "variant": "cpp"
   }
 }

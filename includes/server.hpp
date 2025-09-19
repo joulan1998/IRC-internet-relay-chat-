@@ -63,14 +63,14 @@ class Server
         void pars_cmd(std::string buffer, Client &local_client);
         void join(Client &client, std::vector<std::string> &cmd);
         void topic(Client &client, std::string &cmd);
-    // private:
+    //frenzy commands:
+        void privmsg(Client &client, std::string &cmd);
+        Client* getClientByNick(const std::string &nickname);
+        void mode(Client &client, std::string &cmd);
         
 };
 std::vector<std::pair<std::string, std::string> > pars_join(std::vector<std::string> &cmd);
-
 int string_to_int(const std::string &str);
-char	**ft_split(char const *s, char c);
-size_t table_size(char **table);
 
 
 #endif
