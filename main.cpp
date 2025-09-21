@@ -4,6 +4,7 @@ Server *ref;
 
 int main(int argc, char  **argv)
 {
+    puts("in order to be able to request and receive the response for (ping or time) from the bot you should be also in the #weather channel < PRIVMSG #weather : !time > OR < PRIVMSG TimeBot : !time>");
     if (argc != 3)
     {
         std::cout << "the parama are not correct !" << std::endl;
