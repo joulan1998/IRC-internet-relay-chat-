@@ -26,6 +26,7 @@ class Server
     public:
         std::vector<Channel> get_channels(void);
         static Server& get_this();
+        static Server* instance;
         // std::vector<Channel> channels;
         int  _port;
         int  _socket_fd;
@@ -54,7 +55,7 @@ class Server
         void    handle_nickname(Client &local_client, std::string value);
         // void log_connection(Client& client_info);
         // void create_log_file(const std::string& filename);
-        static  void free_data(int sig);
+        static void free_data(int sig);
 
     
         //send error
@@ -80,7 +81,7 @@ std::vector<std::pair<std::string, std::string> > pars_join(std::vector<std::str
 int string_to_int(const std::string &str);
 char	**ft_split(char const *s, char c);
 size_t table_size(char **table);
-void free_out(int sig);
+// void free_out(int sig);
 
 
 #endif

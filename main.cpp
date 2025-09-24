@@ -1,10 +1,11 @@
 #include "includes/includes.hpp"
 
-Server *ref;
+Server *reff;
 
 void f()
 {
-    system("leaks ircserv");
+    // system("leaks ircserv");
+    system("lsof -c ircserv");
 }
 
 int main(int argc, char  **argv)
@@ -17,7 +18,7 @@ int main(int argc, char  **argv)
         exit(1);
     }
         Server serverf(argv[1], argv[2]);
-        ref = &serverf;
+        reff = &serverf;
     try
     {
         serverf.start_server();

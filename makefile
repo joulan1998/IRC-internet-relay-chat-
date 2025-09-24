@@ -10,7 +10,7 @@ OBJ      = $(SRC:.cpp=.o)
 OBJ_BNS  = $(BNS:.cpp=.o)
 
 CXX      = c++
-CXXFLAGS = -Wall -Wextra -Werror -fsanitize=address -std=c++98 -g
+CXXFLAGS = -Wall -Wextra -Werror -std=c++98 #-g -fsanitize=address
 
 # Default: build server only
 all: $(NAME)
