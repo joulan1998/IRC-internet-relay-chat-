@@ -2,8 +2,14 @@
 
 Server *ref;
 
+void f()
+{
+    system("leaks ircserv");
+}
+
 int main(int argc, char  **argv)
 {
+    atexit(f);
     puts("in order to be able to request and receive the response for (ping or time) from the bot you should be also in the #weather channel < PRIVMSG #weather : !time > OR < PRIVMSG TimeBot : !time>");
     if (argc != 3)
     {
@@ -20,7 +26,4 @@ int main(int argc, char  **argv)
     {
         std::cerr << e.what() << '\n';
     }
-    
-
-
 }

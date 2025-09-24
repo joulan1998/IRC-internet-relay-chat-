@@ -1,5 +1,9 @@
 #include "../includes/includes.hpp"
 
+// void my_sleep(unsigned int seconds)
+// {
+//     usleep(seconds * 1000000); // 1 second = 1,000,000 microseconds
+// }
 
 void    set_sockaddr(sockaddr_in **res, char *port)
 {

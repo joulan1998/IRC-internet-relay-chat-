@@ -10,6 +10,7 @@
 #include <iostream>
 #include <string>
 #include <cstring>
+#include <signal.h>
 #include <map>
 #include <sys/socket.h>
 #include "channel.hpp"
@@ -45,6 +46,7 @@ class Server;
 
 std::vector<std::string> split(std::string &str, char delem, bool flag);
 void cleanString(std::string &s);
+// void my_sleep(unsigned int seconds);
 
 int string_to_int(const std::string &str);
 

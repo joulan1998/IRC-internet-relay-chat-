@@ -1,6 +1,45 @@
 #include  "../includes/server.hpp"
 #include  "../includes/channel.hpp"
 #include "../includes/includes.hpp"
+// void test_fun(int sig)
+// {
+//     (void) sig;
+//     exit(9);
+// }
+
+// static Server& get_this()
+// {
+//     return (*this);
+// }
+
+// std::vector<Channel> Server::get_channels(void)
+// {
+//     return(this->channels);
+// }
+
+// void free_out(int sig)
+// {
+//     // int channels_size = get_channels();
+//     (void )sig;
+//     puts("test test test");
+//     Server &r = get_this();
+//     std::cout << r._socket_fd;
+//     exit(99);
+//     // std::vector<Channel> channels = get_channels()
+
+
+// }
+
+void Server::free_data(int sig)
+{
+    (void) sig;
+    size_t i=0;
+    while (i < this->fds.size())
+    {
+        close(this->fds[i].fd);
+        i++;
+    }
+}
 
 
 void Server::handle_nickname(Client &local_client, std::string value)
@@ -175,8 +214,9 @@ void Server::start_server()
     socket_options();
     bind_server();
     set_listen();
-    // signal(SIGINT, test_fun(SIGINT));
-
+    // signal(SIGINT, test_fun);
+    // signal(SIGINT, free_data);
+    signal(SIGINT, free_out);
 
     this->fds.push_back((pollfd){this->_socket_fd, POLLIN, 0});
     this->clients.push_back(Client(this->_socket_fd)); // <<<<<< should set REGISTRED to true
