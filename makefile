@@ -1,6 +1,6 @@
 NAME = ircserv
 
-SRC = main.cpp source/channel.cpp source/server.cpp utils/irc_utils.cpp source/client.cpp
+SRC = main.cpp source/channel.cpp source/server.cpp utils/irc_utils.cpp source/client.cpp cmd/topic.cpp cmd/join.cpp cmd/mode.cpp cmd/privmsg.cpp
 
 INC = includes/includes.hpp includes/server.hpp includes/client.hpp includes/channel.hpp
 

@@ -14,16 +14,20 @@
 #include "client.hpp"
 #include "channel.hpp"
 #define MAX_CLIENT 10
-
+#include <signal.h>
 class Channel;
 class Client;
 
 class Server
 {
-    private:
+     private:
 
         std::vector<Channel> channels;
     public:
+        std::vector<Channel> get_channels(void);
+        static Server& get_this();
+        static Server* instance;
+        // std::vector<Channel> channels;
         int  _port;
         int  _socket_fd;
         std::string _password;
@@ -50,7 +54,8 @@ class Server
         // void    handle_nickname(Client &local_client/*,int i*/);
         void    handle_nickname(Client &local_client, std::string value);
         // void log_connection(Client& client_info);
-        void create_log_file(const std::string& filename);
+        // void create_log_file(const std::string& filename);
+        static void free_data(int sig);
 
     
         //send error
