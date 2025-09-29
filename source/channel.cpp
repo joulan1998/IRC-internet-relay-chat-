@@ -29,7 +29,7 @@ size_t Channel::getLimit(){return limit;}
 std::string Channel::getTopic(){return topic;};
 void Channel::setTopic(std::string settopic){topic = settopic;}
 
-std::vector<Client > Channel::getOperators(){return op;}
+std::vector<Client > &Channel::getOperators(){return op;}
 std::vector<Client > Channel::getClients(){return clients;}
 
 void Channel::setPassword(std::string pass){password = pass;}
@@ -75,7 +75,6 @@ void Channel::addclient(Client &_client)
     bool check = false;
     for (size_t i = 0; i < clients.size(); i++)
     {
-        // if (clients[i].fd == _client.fd)
         if (clients[i].get_fd() == _client.get_fd())
         {
             check = true;

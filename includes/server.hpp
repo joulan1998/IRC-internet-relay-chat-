@@ -20,11 +20,10 @@ class Client;
 
 class Server
 {
-     private:
-
+    private:
         std::vector<Channel> channels;
     public:
-        std::vector<Channel> get_channels(void);
+        std::vector<Channel> get_channels();
         static Server& get_this();
         static Server* instance;
         // std::vector<Channel> channels;
@@ -68,6 +67,7 @@ class Server
         void pars_cmd(std::string buffer, Client &local_client);
         void join(Client &client, std::vector<std::string> &cmd);
         void topic(Client &client, std::string &cmd);
+        void quit(Client &client, std::string &cmd);
     //frenzy commands:
         void privmsg(Client &client, std::string &cmd);
         Client* getClientByNick(const std::string &nickname);

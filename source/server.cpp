@@ -263,9 +263,34 @@ void Server::pars_cmd(std::string buffer, Client &local_client)
         privmsg(local_client, buffer);
     else if (split_buffer.size() && split_buffer[0] == "MODE")
         mode(local_client, buffer);
-    // else if (split_buffer.size() && split_buffer[0] == "QUIT")
-        // quit(local_client, buffer);
+    else if (split_buffer.size() && split_buffer[0] == "QUIT")
+        quit(local_client, buffer);
     else if(split_buffer.size())
         print_error(local_client.get_fd(),ERR_UNKNOWNCOMMAND(split_buffer[0]) );
     
+}
+
+void Server::quit(Client &client, std::string &cmd)
+{
+    std::vector<std::string> new_cmd = split(cmd, ' ', false);
+    for (size_t i = 0; i < channels.size(); ++i)
+    {
+        std::vector<Client> &clients = this->channels[i].getOperators(); 
+        std::vector<Client>::iterator it = clients.begin();
+        while (it != clients.end())
+        {
+            if (it->get_fd() == client.get_fd()) 
+            {
+                std::vector<Client>::iterator tmp = it;
+                tmp ++;
+                it = clients.erase(it); // erase returns new iterator
+                channels[i].send_msg_in_channel(RPL_QUIT((client.get_nickname() + "!" + client.get_username() + "@" + client.get_host()), cmd[1]));
+                if (it != clients.end())
+                    it  = tmp;
+            }
+            else
+                ++it;
+        }
+    }
+    close(client.get_fd());
 }

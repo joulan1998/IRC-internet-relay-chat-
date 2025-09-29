@@ -19,7 +19,6 @@ class Channel
         std::vector<Client > invited;
         std::string password;
         std::string topic;
-        //mode tmp hado ghir bach n deir bihom test f join mol l mode i9dar ihtajhom
         size_t limit;
         bool k;
         bool l;
@@ -63,7 +62,7 @@ class Channel
 
         std::string list_of_client();
 
-        std::vector<Client > getOperators();
+        std::vector<Client > &getOperators();
         std::vector<Client > getClients();
 
           // frenzy commands:

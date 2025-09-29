@@ -35,7 +35,8 @@
 #define RPL_NAMREPLY(sender, channel, users)    PREFIX  " 353 " + sender + " = " + channel + " :" + users + POSTFIX
 #define RPL_ENDOFNAMES(sender, channel)        PREFIX  " 366 " + sender + " " + channel + " :End of /NAMES list." POSTFIX
 #define RPL_NOTOPIC(sender, channel)PREFIX " 331 " + sender + " " + channel + " :No topic is set" + POSTFIX
-#define RPL_TOPIC(sender, channel, topic)PREFIX " 332 " + sender + " " + channel + " :" + topic + POSTFIX    
+#define RPL_TOPIC(sender, channel, topic)PREFIX " 332 " + sender + " " + channel + " :" + topic + POSTFIX
+#define RPL_QUIT(sender, reason) "::" + sender + " QUIT :Quit: " + reason + POSTFIX  
 
 ////////////////
 

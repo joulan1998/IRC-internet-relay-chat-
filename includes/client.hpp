@@ -44,6 +44,7 @@ class Client
 
         void set_host(std::string value);
         std::string get_host(void);
+        bool operator == (Client other);
 };
 
 
