@@ -30,7 +30,7 @@ std::string Channel::getTopic(){return topic;};
 void Channel::setTopic(std::string settopic){topic = settopic;}
 
 std::vector<Client > &Channel::getOperators(){return op;}
-std::vector<Client > Channel::getClients(){return clients;}
+std::vector<Client > &Channel::getClients(){return clients;}
 
 void Channel::setPassword(std::string pass){password = pass;}
 std::string Channel::getPassword(){return password;}

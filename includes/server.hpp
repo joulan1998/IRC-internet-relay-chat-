@@ -68,6 +68,7 @@ class Server
         void join(Client &client, std::vector<std::string> &cmd);
         void topic(Client &client, std::string &cmd);
         void quit(Client &client, std::string &cmd);
+        void quit_handler(std::vector<Client> &cl, Client &client, std::vector<std::string> &new_cmd, size_t &i, std::string &cmd);
     //frenzy commands:
         void privmsg(Client &client, std::string &cmd);
         Client* getClientByNick(const std::string &nickname);

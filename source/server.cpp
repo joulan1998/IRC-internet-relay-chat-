@@ -210,9 +210,7 @@ void Server::start_server()
                     client_fd = accept(this->_socket_fd, &client_addr, &client_len);
                     this->fds.push_back((pollfd){client_fd, POLLIN, 0});
                     this->clients.push_back(Client(client_fd));
-                    // this->clients.push_back((Client){client_fd, false, false, "", "", "", "", ""});
-                    
-                    
+                    // this->clients.push_back((Client){client_fd, false, false, "", "", "", "", ""}); 
                 }
                 else
                 {
@@ -233,6 +231,7 @@ void Server::start_server()
                     // if (recv(local_client.fd, buffer,1024, 0) < 0 )
                     if (recv(local_client.get_fd(), buffer,1024, 0) < 0 )
                         throw(std::runtime_error("poll_error : " + std::string(strerror(errno))));
+                    if
                     if (!local_client.get_authenticated() && local_client.get_fd() != this->_socket_fd)
                         handle_new_client(local_client, buffer, i);
                     
@@ -270,27 +269,47 @@ void Server::pars_cmd(std::string buffer, Client &local_client)
     
 }
 
+void Server::quit_handler(std::vector<Client> &new_cl, Client &client, std::vector<std::string> &new_cmd, size_t &i, std::string &cmd)
+{
+    std::string reasen;
+    
+
+    std::vector<Client>::iterator it = new_cl.begin();
+    while (it != new_cl.end())
+    {
+        if (it->get_fd() == client.get_fd()) 
+        {
+            std::vector<Client>::iterator tmp = it;
+            tmp ++;
+            it = new_cl.erase(it); // erase returns new iterator
+            if (it != new_cl.end())
+                it  = tmp;
+            size_t index = cmd.find(new_cmd[0]) + new_cmd[0].length();
+            //check for find
+            while(cmd[index] == ' ') index++;                 
+            if (cmd[index] != ':')
+                reasen = new_cmd[2] + POSTFIX;
+            else if (cmd[index] == ':')
+            {
+                index++;
+                reasen = &cmd[index];
+            }
+            channels[i].send_msg_in_channel(RPL_QUIT((client.get_nickname() + "!" + client.get_username() + "@" + client.get_host()), reasen));
+        }
+        else
+            ++it;
+    }
+}
+
 void Server::quit(Client &client, std::string &cmd)
 {
     std::vector<std::string> new_cmd = split(cmd, ' ', false);
+    
     for (size_t i = 0; i < channels.size(); ++i)
     {
-        std::vector<Client> &clients = this->channels[i].getOperators(); 
-        std::vector<Client>::iterator it = clients.begin();
-        while (it != clients.end())
-        {
-            if (it->get_fd() == client.get_fd()) 
-            {
-                std::vector<Client>::iterator tmp = it;
-                tmp ++;
-                it = clients.erase(it); // erase returns new iterator
-                channels[i].send_msg_in_channel(RPL_QUIT((client.get_nickname() + "!" + client.get_username() + "@" + client.get_host()), cmd[1]));
-                if (it != clients.end())
-                    it  = tmp;
-            }
-            else
-                ++it;
-        }
+        quit_handler(this->channels[i].getOperators(), client,new_cmd,i,cmd);
+        quit_handler(this->channels[i].getClients(),client,new_cmd,i,cmd);
     }
     close(client.get_fd());
+    
 }
