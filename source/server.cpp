@@ -231,7 +231,6 @@ void Server::start_server()
                     // if (recv(local_client.fd, buffer,1024, 0) < 0 )
                     if (recv(local_client.get_fd(), buffer,1024, 0) < 0 )
                         throw(std::runtime_error("poll_error : " + std::string(strerror(errno))));
-                    if
                     if (!local_client.get_authenticated() && local_client.get_fd() != this->_socket_fd)
                         handle_new_client(local_client, buffer, i);
                     
@@ -272,9 +271,8 @@ void Server::pars_cmd(std::string buffer, Client &local_client)
 void Server::quit_handler(std::vector<Client> &new_cl, Client &client, std::vector<std::string> &new_cmd, size_t &i, std::string &cmd)
 {
     std::string reasen;
-    
-
     std::vector<Client>::iterator it = new_cl.begin();
+
     while (it != new_cl.end())
     {
         if (it->get_fd() == client.get_fd()) 
@@ -307,8 +305,17 @@ void Server::quit(Client &client, std::string &cmd)
     
     for (size_t i = 0; i < channels.size(); ++i)
     {
-        quit_handler(this->channels[i].getOperators(), client,new_cmd,i,cmd);
-        quit_handler(this->channels[i].getClients(),client,new_cmd,i,cmd);
+        std::vector<Client> &ch_op = this->channels[i].getOperators();
+        std::vector<Client> &cl = this->channels[i].getClients();
+        quit_handler(ch_op, client,new_cmd,i,cmd);
+        quit_handler(cl ,client,new_cmd,i,cmd);
+
+        if (ch_op.empty() && cl.size())
+        {
+            ch_op.push_back(cl[0]);
+            cl.erase(cl.begin());
+            channels[i].send_msg_in_channel(RPL_UMODEIS(client.get_nickname(), this->channels[i].getName_channel(), "+o",ch_op[0].get_nickname()));
+        }
     }
     close(client.get_fd());
     
