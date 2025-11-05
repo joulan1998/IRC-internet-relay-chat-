@@ -2,7 +2,23 @@
 #include  "../includes/channel.hpp"
 #include "../includes/includes.hpp"
 
-
+Server* Server::instance = NULL;
+Server *reff;
+// the function for closing the fd
+void test_fun(int sig)
+{
+    (void) sig;
+    size_t i =0;
+    while (i > reff->clients.size())
+    {
+        close(reff->clients[i].get_fd());
+        i++;
+    }
+    close(reff->_socket_fd);
+    
+    std::cout << reff->_socket_fd << std::endl;
+    return;
+}
 void Server::handle_nickname(Client &local_client, std::string value)
 {
     // if (!local_client.registred)
@@ -173,8 +189,6 @@ void    Server::handle_message(Client &local_client, char *buffer, int index)
     // std::cout << "Client " << local_client.fd << " :" << buffer;
 
 }
-
-
 void Server::start_server()
 {
     create_socket();
@@ -183,22 +197,24 @@ void Server::start_server()
     socket_options();
     bind_server();
     set_listen();
-    // signal(SIGINT, test_fun(SIGINT));
-
+    //    instance = this;
+    reff = this;
+    signal(SIGINT, test_fun);
+    signal(SIGQUIT, test_fun);
 
     this->fds.push_back((pollfd){this->_socket_fd, POLLIN, 0});
-    // this->clients.push_back((Client){this->_socket_fd,false, true,"", "", "", "", ""});
-    // this->clients.push_back((Client){this->_socket_fd,false, true,"", "", "", "", ""});
     this->clients.push_back(Client(this->_socket_fd)); // <<<<<< should set REGISTRED to true
 
     puts(this->_password.c_str());
     size_t i =0;
+    ssize_t bytes_readen =0;
     char buffer[1024];
     while(1)
     {
         int client_fd;
         if (poll(fds.data(), fds.size(), -1) < 0)
             throw(std::runtime_error("poll_error : " + std::string(strerror(errno))));
+            // puts("poll_error");
         for (i = 0; i < fds.size(); i++)
         {
             if (this->fds[i].revents & POLLIN)
@@ -210,31 +226,36 @@ void Server::start_server()
                     client_fd = accept(this->_socket_fd, &client_addr, &client_len);
                     this->fds.push_back((pollfd){client_fd, POLLIN, 0});
                     this->clients.push_back(Client(client_fd));
-                    // this->clients.push_back((Client){client_fd, false, false, "", "", "", "", ""}); 
+                    // this->clients.push_back((Client){client_fd, false, false, "", "", "", "", ""});
                 }
                 else
                 {
                     Client &local_client = this->clients[i];
                     //hadechi bach nejib host deyal wahed l user ///// /<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<------------------------------__________----------------------
-
                     sockaddr_in* addr_in = (sockaddr_in*)&client_addr;
                     char ip_str[INET_ADDRSTRLEN];
                     inet_ntop(AF_INET, &(addr_in->sin_addr), ip_str, INET_ADDRSTRLEN);
                     std::string client_ip(ip_str);
                     local_client.set_host(client_ip);
-                    std::cout<< "--------- >>>>>> {"<<client_ip<<"} <<<<<< ----------"<< std::endl<<std::endl;
-
-
-                    // fcntl(local_client.fd, F_SETFL, O_NONBLOCK);
+                    // std::cout<< "--------- >>>>>> {"<<client_ip<<"} <<<<<< ----------"<< std::endl<<std::endl;
                     fcntl(local_client.get_fd(), F_SETFL, O_NONBLOCK);
                     memset(buffer, 0,1024);
-                    // if (recv(local_client.fd, buffer,1024, 0) < 0 )
-                    if (recv(local_client.get_fd(), buffer,1024, 0) < 0 )
+                    bytes_readen = recv(local_client.get_fd(), buffer,1024, 0);
+                    if (bytes_readen == 0 && clients.size() > 1)
+                    {
+                        puts("jojooojo");
+                        std::cout << clients.size()<< std::endl;
+                        this->clients.erase(this->clients.begin() + i);
+                        close((this->fds.begin() + i)->fd);
+
+                        // close(this->fds[this->fds.begin() + i].fd);
+                        this->fds.erase(this->fds.begin() + i);
+                        continue;
+                    }
+                    else if (bytes_readen < 0 )
                         throw(std::runtime_error("poll_error : " + std::string(strerror(errno))));
                     if (!local_client.get_authenticated() && local_client.get_fd() != this->_socket_fd)
                         handle_new_client(local_client, buffer, i);
-                    
-                    // if ((this->fds[i].revents & POLLIN) && (local_client.fd != this->_socket_fd) && (local_client.authenticated) && (local_client.fd != this->_socket_fd))
                     else 
                     {
                         std::string new_buffer(buffer);
@@ -268,55 +289,3 @@ void Server::pars_cmd(std::string buffer, Client &local_client)
     
 }
 
-void Server::quit_handler(std::vector<Client> &new_cl, Client &client, std::vector<std::string> &new_cmd, size_t &i, std::string &cmd)
-{
-    std::string reasen;
-    std::vector<Client>::iterator it = new_cl.begin();
-
-    while (it != new_cl.end())
-    {
-        if (it->get_fd() == client.get_fd()) 
-        {
-            std::vector<Client>::iterator tmp = it;
-            tmp ++;
-            it = new_cl.erase(it); // erase returns new iterator
-            if (it != new_cl.end())
-                it  = tmp;
-            size_t index = cmd.find(new_cmd[0]) + new_cmd[0].length();
-            //check for find
-            while(cmd[index] == ' ') index++;                 
-            if (cmd[index] != ':')
-                reasen = new_cmd[2] + POSTFIX;
-            else if (cmd[index] == ':')
-            {
-                index++;
-                reasen = &cmd[index];
-            }
-            channels[i].send_msg_in_channel(RPL_QUIT((client.get_nickname() + "!" + client.get_username() + "@" + client.get_host()), reasen));
-        }
-        else
-            ++it;
-    }
-}
-
-void Server::quit(Client &client, std::string &cmd)
-{
-    std::vector<std::string> new_cmd = split(cmd, ' ', false);
-    
-    for (size_t i = 0; i < channels.size(); ++i)
-    {
-        std::vector<Client> &ch_op = this->channels[i].getOperators();
-        std::vector<Client> &cl = this->channels[i].getClients();
-        quit_handler(ch_op, client,new_cmd,i,cmd);
-        quit_handler(cl ,client,new_cmd,i,cmd);
-
-        if (ch_op.empty() && cl.size())
-        {
-            ch_op.push_back(cl[0]);
-            cl.erase(cl.begin());
-            channels[i].send_msg_in_channel(RPL_UMODEIS(client.get_nickname(), this->channels[i].getName_channel(), "+o",ch_op[0].get_nickname()));
-        }
-    }
-    close(client.get_fd());
-    
-}
