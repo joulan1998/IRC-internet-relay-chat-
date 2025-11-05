@@ -84,22 +84,15 @@ void Server::join(Client &client, std::vector<std::string> &cmd)
             {
                 ch = getchannel(ch_pass[i].first);
                 ch->addoperator(client);
-                // if (ch_pass[i].second.empty())//TODO hada tah ghir tmp bach n testi bih
-                // {
-                //     ch->setPassword(ch_pass[i].second);
-                //     ch->setFlag_k(true);
-                // }
-                // ch->setFlag_l(true);
-                // ch->setLimit(2);
             }
         }
         if (ch)
         {
-            // if (ch->getFlag_i() && !(ch->is_invited(client)))
-            // {
-            //     print_error(client.get_fd(), ERR_INVITEONLYCHAN(client.get_nickname(), ch->getName_channel()));
-            //     continue;
-            // }
+            if (ch->getFlag_i() && !(ch->is_invited(client)))
+            {
+                print_error(client.get_fd(), ERR_INVITEONLYCHAN(client.get_nickname(), ch->getName_channel()));
+                continue;
+            }
             if (ch->getFlag_l() && (ch->getLimit() == (ch->getOperators().size() + ch->getClients().size())))
             {
                 print_error(client.get_fd(), ERR_CHANNELISFULL(client.get_nickname() ,ch->getName_channel()));
@@ -114,7 +107,6 @@ void Server::join(Client &client, std::vector<std::string> &cmd)
             {
                 if (!ch->is_operator(client))
                     ch->addclient(client);
-                
                 ch->send_msg_in_channel(RPL_JOIN((client.get_nickname() + "!" + client.get_username() + "@" + client.get_host()),ch->getName_channel()));
                 print_error(client.get_fd(), RPL_NAMREPLY(client.get_nickname(), ch->getName_channel(), ch->list_of_client()));
                 print_error(client.get_fd(), RPL_ENDOFNAMES(client.get_nickname(), ch->getName_channel()));

@@ -47,6 +47,10 @@ void Server::handle_username(Client &local_client, std::vector<std::string> tabl
         local_client.set_servername(table[3]);
         local_client.set_realname(table[4]);
         local_client.set_authenticated(true);
+        print_error(local_client.get_fd(), RPL_WELCOME(local_client.get_nickname(), local_client.get_hostname()));
+        print_error(local_client.get_fd(), RPL_YOURHOST(local_client.get_nickname(), local_client.get_hostname()));
+        print_error(local_client.get_fd(), RPL_CREATED(local_client.get_nickname(), local_client.get_hostname()));
+        print_error(local_client.get_fd(), RPL_MYINFO(local_client.get_nickname(), local_client.get_hostname()));
         // local_client.username = table[1];
         // local_client.hostname = table[2];
         // local_client.servername = table[3];
@@ -147,7 +151,6 @@ void Server::handle_new_client(Client &local_client, std::string buffer, size_t 
         return;
     if(temp_buff.empty())
     {
-        exit(94);
         // close(local_client.fd);
         close(local_client.get_fd());
         this->clients.erase(this->clients.begin() + index);
@@ -163,6 +166,8 @@ void Server::handle_new_client(Client &local_client, std::string buffer, size_t 
     else if (((!strncmp(table[0].c_str(), "USER\0", 5)) || (!strncmp(table[0].c_str(), "user\0", 5)))/* && (table.size() == 5)*/)
     {
         handle_username(local_client, table);
+
+
         // log_connection(local_client);        
         
 
@@ -207,14 +212,13 @@ void Server::start_server()
 
     puts(this->_password.c_str());
     size_t i =0;
-    ssize_t bytes_readen =0;
+    ssize_t bytes_readen = 0;
     char buffer[1024];
     while(1)
     {
         int client_fd;
         if (poll(fds.data(), fds.size(), -1) < 0)
             throw(std::runtime_error("poll_error : " + std::string(strerror(errno))));
-            // puts("poll_error");
         for (i = 0; i < fds.size(); i++)
         {
             if (this->fds[i].revents & POLLIN)
@@ -224,6 +228,7 @@ void Server::start_server()
                 if (this->fds[i].fd == this->_socket_fd)
                 {
                     client_fd = accept(this->_socket_fd, &client_addr, &client_len);
+                    std::cout << "Client: " << client_fd << " is connected.\r\n";
                     this->fds.push_back((pollfd){client_fd, POLLIN, 0});
                     this->clients.push_back(Client(client_fd));
                     // this->clients.push_back((Client){client_fd, false, false, "", "", "", "", ""});
@@ -243,7 +248,6 @@ void Server::start_server()
                     bytes_readen = recv(local_client.get_fd(), buffer,1024, 0);
                     if (bytes_readen == 0 && clients.size() > 1)
                     {
-                        puts("jojooojo");
                         std::cout << clients.size()<< std::endl;
                         this->clients.erase(this->clients.begin() + i);
                         close((this->fds.begin() + i)->fd);
@@ -255,7 +259,10 @@ void Server::start_server()
                     else if (bytes_readen < 0 )
                         throw(std::runtime_error("poll_error : " + std::string(strerror(errno))));
                     if (!local_client.get_authenticated() && local_client.get_fd() != this->_socket_fd)
+                    {
                         handle_new_client(local_client, buffer, i);
+
+                    }
                     else 
                     {
                         std::string new_buffer(buffer);
@@ -264,9 +271,7 @@ void Server::start_server()
                 }
             }
         }
-
     }
-
 }
 
 void Server::pars_cmd(std::string buffer, Client &local_client)

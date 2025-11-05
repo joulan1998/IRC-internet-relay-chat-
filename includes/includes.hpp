@@ -38,8 +38,12 @@
 #define RPL_TOPIC(sender, channel, topic)PREFIX " 332 " + sender + " " + channel + " :" + topic + POSTFIX
 #define RPL_QUIT(sender, reason) ":" + sender + " QUIT :Quit:" + reason + POSTFIX
 #define RPL_UMODEIS(hostname, channelname, mode, user)"::" + hostname + " MODE " + channelname + " " + mode + " " + user + POSTFIX
-
+#define RPL_PRIVMSG(sender, username, ip, target, msg) ":" + sender + "!" + username + "@" + ip + " PRIVMSG " + target
 ///////////////
+#define RPL_WELCOME(nick, hostname)  std::string("\r\n:") + std::string(hostname) + std::string(" 001 ") + std::string(nick) + std::string(" :Welcome to the Internet Relay Chat Network ") + std::string(nick) + "!~" + std::string(nick) + "@" + std::string(hostname) + "\r\n"
+#define RPL_YOURHOST(nick, hostname) std::string(":") + std::string(hostname) + std::string(" 002 ") + std::string(nick) + std::string(" :Your host is ") + std::string(hostname) + std::string(", running version 1.0\r\n")
+#define RPL_CREATED(nick, hostname)  std::string(":") + std::string(hostname) + std::string(" 003 ") + std::string(nick) + std::string(" :This server is created today\r\n")
+#define RPL_MYINFO(nick, hostname)   std::string(":") + std::string(hostname) + std::string(" 004 ") + std::string(nick) + " " + std::string(hostname) + std::string(", Version: 1.0, User mode: none, Channel modes: i, t, k, o, l\r\n")
 
 class Server;
 

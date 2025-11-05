@@ -32,7 +32,8 @@ void Server::privmsg(Client &client, std::string &cmd)
         return;
     }
     // Build the full IRC line
-    std::string fullMessage = ":" + client.get_nickname() + "!" + client.get_username() + "@" + client.get_host() + " PRIVMSG " + target + " :" + message + POSTFIX;
+
+    std::string fullMessage = RPL_PRIVMSG(client.get_nickname(),client.get_username(), client.get_host(),target, message);
     // Channel target
     if (!target.empty() && target[0] == '#') {
         Channel *chan = getchannel(target);
