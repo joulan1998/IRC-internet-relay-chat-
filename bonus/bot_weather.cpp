@@ -1,7 +1,8 @@
 #include "../includes/includes.hpp"
 
 // Helper to send messages to IRC
-void my_sleep(unsigned int seconds)
+// void my_sleep(unsigned int seconds)
+void my_sleep( float seconds)
 {
     usleep(seconds * 1000000); // 1 second = 1,000,000 microseconds
 }
@@ -52,15 +53,15 @@ int main(int argc, char* argv[])
 
     // --- IRC handshake ---
     sendIRC(sock, "PASS " + password);
-    my_sleep(1);
+    // my_sleep(0.1);
 
-    // sleep(1);
+    sleep(1);
     sendIRC(sock, "NICK " + nickname);
-    my_sleep(1);
-    // sleep(1);
+    // my_sleep(0.1);
+    sleep(1);
     sendIRC(sock, "USER " + nickname + " 0 * :" + nickname);
-    my_sleep(1);
-    // sleep(1);
+    // my_sleep(0.1);
+    sleep(1);
     sendIRC(sock, "JOIN " + channel);
 
     char buffer[4096];
@@ -93,7 +94,6 @@ int main(int argc, char* argv[])
             // exit(9);
         }
     }
-
     close(sock);
     return 0;
 }

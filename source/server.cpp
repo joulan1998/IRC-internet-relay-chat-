@@ -3,6 +3,7 @@
 #include "../includes/includes.hpp"
 Server* Server::instance = NULL;
 Server *ref;
+// the function for closing the fd
 void test_fun(int sig)
 {
     (void) sig;
@@ -190,11 +191,11 @@ void Server::start_server()
     socket_options();
     bind_server();
     set_listen();
-       instance = this;
+    //    instance = this;
     ref = this;
     signal(SIGINT, test_fun);
     signal(SIGQUIT, test_fun);
-    
+
     this->fds.push_back((pollfd){this->_socket_fd, POLLIN, 0});
     this->clients.push_back(Client(this->_socket_fd)); // <<<<<< should set REGISTRED to true
 
@@ -207,6 +208,7 @@ void Server::start_server()
         int client_fd;
         if (poll(fds.data(), fds.size(), -1) < 0)
             throw(std::runtime_error("poll_error : " + std::string(strerror(errno))));
+            // puts("poll_error");
         for (i = 0; i < fds.size(); i++)
         {
             if (this->fds[i].revents & POLLIN)
@@ -233,9 +235,14 @@ void Server::start_server()
                     fcntl(local_client.get_fd(), F_SETFL, O_NONBLOCK);
                     memset(buffer, 0,1024);
                     bytes_readen = recv(local_client.get_fd(), buffer,1024, 0);
-                    if (bytes_readen == 0)
+                    if (bytes_readen == 0 && clients.size() > 1)
                     {
+                        puts("jojooojo");
+                        std::cout << clients.size()<< std::endl;
                         this->clients.erase(this->clients.begin() + i);
+                        close((this->fds.begin() + i)->fd);
+
+                        // close(this->fds[this->fds.begin() + i].fd);
                         this->fds.erase(this->fds.begin() + i);
                         continue;
                     }

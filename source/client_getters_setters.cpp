@@ -1,6 +1,6 @@
 #include "../includes/includes.hpp"
 #include "../includes/client.hpp"
-// Client::Client( int fd;bool registred; bool authenticated; std::string nickname; std::string username; std::string hostname; std::string servername; std::string realname;) :   fd(fd), registred(registred),  authenticated(authenticated),  nickname(nickname),  username(username),  hostname(hostname), servername(servername), realname(realname);
+
 Client::Client( int fd) : fd(fd), registred(false),  authenticated(false),  nickname(""),  username(""),  hostname(""), servername(""), realname(""){}
 
 int Client::get_fd(void) {return this->fd;}
