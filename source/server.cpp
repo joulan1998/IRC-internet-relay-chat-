@@ -22,13 +22,30 @@ void test_fun(int sig)
 void Server::handle_nickname(Client &local_client, std::string value)
 {
     // if (!local_client.registred)
-    if (!local_client.get_registred())
-        std::cout << "please enter password in first !"<< std::endl;
-    else if (value.empty())
+    if ( !value.empty() && (check_nickname(value) == 0))
+    {
+        std::string st= "*";
+        print_msg(local_client.get_fd(),  ERR_NICKNAMEINUSE(st));
         return;
+    }
+    if (!local_client.get_registred())
+    {
+        std::string st= "*";
+        print_msg(local_client.get_fd(),  ERR_PASSWDMISMATCH2(st));
+    }
+        // std::cout << "please enter password in first !"<< std::endl;
+    else if (value.empty())
+    {
+        std::string st= "NICK";
+        print_msg(local_client.get_fd(),  ERR_NEEDMOREPARAMS(st));
+        return;
+    }
     else if  (!value.empty())
+    {
         local_client.set_nickname(value);
+        std::cout<<"Client <"<<local_client.get_fd()<<"> set NICK: admin" << std::endl;
         // local_client.nickname = value;
+    }
     else 
         std::cout << "error nikname"<< std::endl;
 }
@@ -37,7 +54,9 @@ void Server::handle_username(Client &local_client, std::vector<std::string> tabl
 {   
     if ((table.size() != 5))
     {
-        std::cout << "error : use <USER username hostname servername realname> !"<< std::endl;
+        std::string st= "*";
+        print_msg(local_client.get_fd(),  ERR_PASSWDMISMATCH2(st));
+        // std::cout << "error : use <USER username hostname servername realname> !"<< std::endl;
     }
     // else if (table[1].size() >= 4 && local_client.registred)
     else if (table[1].size() >= 4 && local_client.get_registred())
@@ -125,8 +144,13 @@ void Server::bind_server()
 
 void Server::handle_password(Client &local_client, std::string value/*,size_t index*/)
 {
+    //ddhjsdhjdhjhsdjsdssd
     if(value.empty())
+    {
+        std::string st= "PASS";
+        print_msg(local_client.get_fd(),  ERR_NEEDMOREPARAMS(st));
         return;
+    }
     // else if (local_client.registred)
     else if (local_client.get_registred())
         std::cout << "you are already passed the password !" << std::endl;
@@ -134,10 +158,15 @@ void Server::handle_password(Client &local_client, std::string value/*,size_t in
     {
         // local_client.registred = true;
         local_client.set_registred(true);
+        std::cout << "Client <" << local_client.get_fd() << "> authenticated successfully." << std::endl;
         // log_connection(local_client);
     }
-    else 
-        std::cout << "handle password erroor  !" << std::endl;
+    else
+    {
+        std::string st= "*";
+        print_msg(local_client.get_fd(),  ERR_PASSWDMISMATCH(st));
+        return;
+    }
 }
 
 
@@ -149,6 +178,7 @@ void Server::handle_new_client(Client &local_client, std::string buffer, size_t 
     std::vector<std::string> table = split(temp_buff, ' ' ,false);
     if (table.empty())
         return;
+    to_upper(table[0]);
     if(temp_buff.empty())
     {
         // close(local_client.fd);
@@ -157,26 +187,38 @@ void Server::handle_new_client(Client &local_client, std::string buffer, size_t 
         this->fds.erase(this->fds.begin() + index);
         return;
     }
-    else if ((!strncmp(table[0].c_str(), "PASS\0", 5)) || (!strncmp(table[0].c_str(), "pass\0", 5)))
+    else if (((!strncmp(table[0].c_str(), "PASS\0", 5))) /*&& !local_client.get_registred()*/)
     {
         handle_password(local_client, table[1]/*, index*/);
     }
-    else if ((!strncmp(table[0].c_str(), "NICK\0", 5)) || (!strncmp(table[0].c_str(), "nick\0", 5)))
+    else if (((!strncmp(table[0].c_str(), "NICK\0", 5))) )
         handle_nickname(local_client, table[1]);
-    else if (((!strncmp(table[0].c_str(), "USER\0", 5)) || (!strncmp(table[0].c_str(), "user\0", 5)))/* && (table.size() == 5)*/)
+    else if ((((!strncmp(table[0].c_str(), "USER\0", 5))) ) && /*(table.size() == 5) &&*/ local_client.get_registred())
     {
         handle_username(local_client, table);
-
-
-        // log_connection(local_client);        
-        
-
+    }
+    else if ((((!strncmp(table[0].c_str(), "USER\0", 5 || (!strncmp(table[0].c_str(), "NICK\0", 5)) ) ) && !local_client.get_registred()/* && (table.size() == 5)*/)
+    {
+        std::string st= "*";
+        print_msg(local_client.get_fd(),  ERR_PASSWDMISMATCH2(st));
+    }
+    else if (local_client.get_registred())
+    {
+        print_msg(local_client.get_fd(),  ERR_UNKNOWNCOMMAND(table[0]));
     }
     else
-        puts("unkown command during auth !");
+    {
+        std::string st= "*";
+        print_msg(local_client.get_fd(),  ERR_PASSWDMISMATCH2(st));
+    }
+
 }
 
-
+void Server::print_msg(int fd, std::string msg)
+{
+    if (send(fd, msg.c_str(), msg.length(), 0) == -1)
+        std::cout << "msg not send "<< std::endl;
+}
 
 void    Server::handle_message(Client &local_client, char *buffer, int index)
 {
@@ -210,10 +252,10 @@ void Server::start_server()
     this->fds.push_back((pollfd){this->_socket_fd, POLLIN, 0});
     this->clients.push_back(Client(this->_socket_fd)); // <<<<<< should set REGISTRED to true
 
-    puts(this->_password.c_str());
     size_t i =0;
     ssize_t bytes_readen = 0;
     char buffer[1024];
+    std::cout << "-------SERVER START SUCCESSFULLY-------"<< std::endl;
     while(1)
     {
         int client_fd;
@@ -294,3 +336,17 @@ void Server::pars_cmd(std::string buffer, Client &local_client)
     
 }
 
+int Server::check_nickname(std::string name)
+{
+    for (size_t i= 0 ;i < this->clients.size(); i++)
+    {
+        if (clients[i].get_nickname() == name)
+        {
+            return (0);
+        }
+
+
+    }
+        return (1);
+
+}

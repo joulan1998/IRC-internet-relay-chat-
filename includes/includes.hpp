@@ -22,7 +22,7 @@
 
 #define ERR_NOSUCHCHANNEL(channel)    PREFIX " 403 " + channel + " :No such channel" POSTFIX
 #define ERR_BADCHANNELKEY(channel)    PREFIX " 475 " + channel + " :Cannot join channel (+k)" + POSTFIX
-#define ERR_NEEDMOREPARAMS(command)    PREFIX "461 " + command + " :Not enough parameters" POSTFIX  
+#define ERR_NEEDMOREPARAMS(command)    PREFIX " 461 " + command + " :Not enough parameters" POSTFIX  
 #define ERR_NOTONCHANNEL(target, channel)    PREFIX "442 " + target + " " + channel + " :You're not on that channel" POSTFIX
 #define ERR_CHANNELISFULL(client, channel)PREFIX " 471 " + client + " " + channel + " :Cannot join channel (+l)" POSTFIX
 #define ERR_UNKNOWNCOMMAND(command)    PREFIX "421 " + command + " :Unknown command" POSTFIX 
@@ -44,7 +44,9 @@
 #define RPL_YOURHOST(nick, hostname) std::string(":") + std::string(hostname) + std::string(" 002 ") + std::string(nick) + std::string(" :Your host is ") + std::string(hostname) + std::string(", running version 1.0\r\n")
 #define RPL_CREATED(nick, hostname)  std::string(":") + std::string(hostname) + std::string(" 003 ") + std::string(nick) + std::string(" :This server is created today\r\n")
 #define RPL_MYINFO(nick, hostname)   std::string(":") + std::string(hostname) + std::string(" 004 ") + std::string(nick) + " " + std::string(hostname) + std::string(", Version: 1.0, User mode: none, Channel modes: i, t, k, o, l\r\n")
-
+#define ERR_NICKNAMEINUSE(target)    PREFIX " 433 " + target + " :Nickname is already in use" POSTFIX
+#define ERR_PASSWDMISMATCH(target)    PREFIX " 464 " + target + " :Password incorrect" POSTFIX //password incorroct 
+#define ERR_PASSWDMISMATCH2(target)    PREFIX " 464 " + target + " :Password required before other commands" POSTFIX //password incorroct 
 class Server;
 
 
