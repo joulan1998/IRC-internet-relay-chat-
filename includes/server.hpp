@@ -51,7 +51,7 @@ class Server
         // void     handle_username(Client &local_client);
         // int     handle_username(client &local_client);
         // void    handle_nickname(Client &local_client/*,int i*/);
-        void    handle_nickname(Client &local_client, std::string value);
+        void    handle_nickname(Client &local_client, std::vector<std::string> table);
         // void log_connection(Client& client_info);
         // void create_log_file(const std::string& filename);
         static void free_data(int sig);

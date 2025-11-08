@@ -19,32 +19,50 @@ void test_fun(int sig)
     std::cout << reff->_socket_fd << std::endl;
     return;
 }
-void Server::handle_nickname(Client &local_client, std::string value)
+void Server::handle_nickname(Client &local_client, std::vector<std::string> table)
 {
-    // if (!local_client.registred)
-    if ( !value.empty() && (check_nickname(value) == 0))
+    if (!local_client.get_nickname().empty())
     {
-        std::string st= "*";
-        print_msg(local_client.get_fd(),  ERR_NICKNAMEINUSE(st));
-        return;
+        print_msg(local_client.get_fd(),  ERR_UNKNOWNCOMMAND(table[0]));
+        return ;
     }
     if (!local_client.get_registred())
     {
         std::string st= "*";
-        print_msg(local_client.get_fd(),  ERR_PASSWDMISMATCH2(st));
+        print_msg(local_client.get_fd(),  ERR_PASSWDINFIRST(st));
+        return ;
     }
-        // std::cout << "please enter password in first !"<< std::endl;
-    else if (value.empty())
+    else if (table.size() == 1)
     {
         std::string st= "NICK";
         print_msg(local_client.get_fd(),  ERR_NEEDMOREPARAMS(st));
         return;
     }
-    else if  (!value.empty())
+    else if (table.size() != 2)
     {
-        local_client.set_nickname(value);
-        std::cout<<"Client <"<<local_client.get_fd()<<"> set NICK: admin" << std::endl;
-        // local_client.nickname = value;
+        std::string st= "*";
+        print_msg(local_client.get_fd(),  ERR_NONICKNAMEGIVEN(st));
+        return;
+    }
+    else if ( !table[1].empty() && (check_nickname(table[1]) == 0))
+    {
+        std::string st= "*";
+        print_msg(local_client.get_fd(),  ERR_NICKNAMEINUSE(st));
+        return;
+    }
+    else if  (!table[1].empty())
+    {
+        local_client.set_nickname(table[1]);
+        if (!local_client.get_nickname().empty() && !local_client.get_realname().empty() && !local_client.get_hostname().empty() && !local_client.get_servername().empty())
+        {
+            local_client.set_authenticated(true);
+            //msg start for server after start
+            print_error(local_client.get_fd(), RPL_WELCOME(local_client.get_nickname(), local_client.get_hostname()));
+            print_error(local_client.get_fd(), RPL_YOURHOST(local_client.get_nickname(), local_client.get_hostname()));
+            print_error(local_client.get_fd(), RPL_CREATED(local_client.get_nickname(), local_client.get_hostname()));
+            print_error(local_client.get_fd(), RPL_MYINFO(local_client.get_nickname(), local_client.get_hostname()));
+        }
+        std::cout<<"Client <"<<local_client.get_fd()<<"> set NICK: "<< local_client.get_nickname() <<std::endl;
     }
     else 
         std::cout << "error nikname"<< std::endl;
@@ -52,32 +70,37 @@ void Server::handle_nickname(Client &local_client, std::string value)
 
 void Server::handle_username(Client &local_client, std::vector<std::string> table)
 {   
-    if ((table.size() != 5))
+    if (!local_client.get_registred())
     {
         std::string st= "*";
-        print_msg(local_client.get_fd(),  ERR_PASSWDMISMATCH2(st));
-        // std::cout << "error : use <USER username hostname servername realname> !"<< std::endl;
+        print_msg(local_client.get_fd(),  ERR_PASSWDINFIRST(st));
+        return;
     }
-    // else if (table[1].size() >= 4 && local_client.registred)
-    else if (table[1].size() >= 4 && local_client.get_registred())
+    // else if (local_client.get_registred())
+    else if (local_client.get_registred() && (table.size() == 5) )
     {
         local_client.set_username(table[1]);
         local_client.set_hostname(table[2]);
         local_client.set_servername(table[3]);
         local_client.set_realname(table[4]);
-        local_client.set_authenticated(true);
-        print_error(local_client.get_fd(), RPL_WELCOME(local_client.get_nickname(), local_client.get_hostname()));
-        print_error(local_client.get_fd(), RPL_YOURHOST(local_client.get_nickname(), local_client.get_hostname()));
-        print_error(local_client.get_fd(), RPL_CREATED(local_client.get_nickname(), local_client.get_hostname()));
-        print_error(local_client.get_fd(), RPL_MYINFO(local_client.get_nickname(), local_client.get_hostname()));
-        // local_client.username = table[1];
-        // local_client.hostname = table[2];
-        // local_client.servername = table[3];
-        // local_client.realname = table[4];
-        // local_client.authenticated = true;
+        std::cout << "Client <" << local_client.get_fd() << "> set USER: "<<local_client.get_username()<< " HOST: "<<local_client.get_hostname()<< " SERV: "<<local_client.get_servername()<< " REAL: "<<local_client.get_realname()<< std::endl;
+        if(!local_client.get_nickname().empty())
+        {
+            local_client.set_authenticated(true);
+            //msg start for server after start
+            print_error(local_client.get_fd(), RPL_WELCOME(local_client.get_nickname(), local_client.get_hostname()));
+            print_error(local_client.get_fd(), RPL_YOURHOST(local_client.get_nickname(), local_client.get_hostname()));
+            print_error(local_client.get_fd(), RPL_CREATED(local_client.get_nickname(), local_client.get_hostname()));
+            print_error(local_client.get_fd(), RPL_MYINFO(local_client.get_nickname(), local_client.get_hostname()));
+        }
+
     }
     else 
-        std::cout << "error username"<< std::endl;
+    {
+        std::string st= "USER";
+        print_msg(local_client.get_fd(),  ERR_NEEDMOREPARAMS(st));
+        return;
+    }
 }
 
 
@@ -187,30 +210,43 @@ void Server::handle_new_client(Client &local_client, std::string buffer, size_t 
         this->fds.erase(this->fds.begin() + index);
         return;
     }
-    else if (((!strncmp(table[0].c_str(), "PASS\0", 5))) /*&& !local_client.get_registred()*/)
+    else if (((!strncmp(table[0].c_str(), "PASS\0", 5))) && !local_client.get_registred())
     {
-        handle_password(local_client, table[1]/*, index*/);
+        handle_password(local_client, table[1]);
     }
     else if (((!strncmp(table[0].c_str(), "NICK\0", 5))) )
-        handle_nickname(local_client, table[1]);
-    else if ((((!strncmp(table[0].c_str(), "USER\0", 5))) ) && /*(table.size() == 5) &&*/ local_client.get_registred())
+    { 
+        handle_nickname(local_client, table);
+    }
+    else if ((((!strncmp(table[0].c_str(), "USER\0", 5))) ) /*&& (table.size() == 5) && local_client.get_registred()*/)
     {
         handle_username(local_client, table);
     }
-    else if ((((!strncmp(table[0].c_str(), "USER\0", 5 || (!strncmp(table[0].c_str(), "NICK\0", 5)) ) ) && !local_client.get_registred()/* && (table.size() == 5)*/)
+    else if (!local_client.get_registred())
     {
         std::string st= "*";
-        print_msg(local_client.get_fd(),  ERR_PASSWDMISMATCH2(st));
+        print_msg(local_client.get_fd(),  ERR_PASSWDINFIRST(st));
+        return ;
     }
-    else if (local_client.get_registred())
+    else //((!strncmp(table[0].c_str(), "USER\0", 5) || (!strncmp(table[0].c_str(), "NICK\0", 5)) )  && !local_client.get_registred()/* && (table.size() == 5)*/)
     {
         print_msg(local_client.get_fd(),  ERR_UNKNOWNCOMMAND(table[0]));
     }
-    else
-    {
-        std::string st= "*";
-        print_msg(local_client.get_fd(),  ERR_PASSWDMISMATCH2(st));
-    }
+
+    // else if ((!strncmp(table[0].c_str(), "USER\0", 5) || (!strncmp(table[0].c_str(), "NICK\0", 5)) )  && !local_client.get_registred()/* && (table.size() == 5)*/)
+    // {
+    //     std::string st= "*";
+    //     print_msg(local_client.get_fd(),  ERR_PASSWDINFIRST(st));
+    // }
+    // else if (local_client.get_registred())
+    // {
+    //     print_msg(local_client.get_fd(),  ERR_UNKNOWNCOMMAND(table[0]));
+    // }
+    // else
+    // {
+    //     std::string st= "*";
+    //     print_msg(local_client.get_fd(),  ERR_PASSWDINFIRST(st));
+    // }
 
 }
 
@@ -303,7 +339,6 @@ void Server::start_server()
                     if (!local_client.get_authenticated() && local_client.get_fd() != this->_socket_fd)
                     {
                         handle_new_client(local_client, buffer, i);
-
                     }
                     else 
                     {
@@ -344,9 +379,6 @@ int Server::check_nickname(std::string name)
         {
             return (0);
         }
-
-
     }
-        return (1);
-
+    return (1);
 }

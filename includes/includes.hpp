@@ -22,12 +22,12 @@
 
 #define ERR_NOSUCHCHANNEL(channel)    PREFIX " 403 " + channel + " :No such channel" POSTFIX
 #define ERR_BADCHANNELKEY(channel)    PREFIX " 475 " + channel + " :Cannot join channel (+k)" + POSTFIX
-#define ERR_NEEDMOREPARAMS(command)    PREFIX " 461 " + command + " :Not enough parameters" POSTFIX  
-#define ERR_NOTONCHANNEL(target, channel)    PREFIX "442 " + target + " " + channel + " :You're not on that channel" POSTFIX
+#define ERR_NEEDMOREPARAMS(command)    PREFIX " 461 " + command + " :Wrong number of parameters" POSTFIX  
+#define ERR_NOTONCHANNEL(target, channel)    PREFIX " 442 " + target + " " + channel + " :You're not on that channel" POSTFIX
 #define ERR_CHANNELISFULL(client, channel)PREFIX " 471 " + client + " " + channel + " :Cannot join channel (+l)" POSTFIX
-#define ERR_UNKNOWNCOMMAND(command)    PREFIX "421 " + command + " :Unknown command" POSTFIX 
+#define ERR_UNKNOWNCOMMAND(command)    PREFIX " 421 " + command + " :Unknown command" POSTFIX 
 #define ERR_USERONCHANNEL(channel, target)    PREFIX " 443 " + channel + " " + target + " :is already on channel" POSTFIX
-#define ERR_CHANOPRIVSNEEDED(channel)    PREFIX "482 " + channel + " :You're not channel operator" POSTFIX
+#define ERR_CHANOPRIVSNEEDED(channel)    PREFIX " 482 " + channel + " :You're not channel operator" POSTFIX
 #define ERR_INVITEONLYCHAN(client, channel)PREFIX " 473 " + client + " " + channel + " :Cannot join channel (+i)" POSTFIX
 /////////////////
 
@@ -46,7 +46,9 @@
 #define RPL_MYINFO(nick, hostname)   std::string(":") + std::string(hostname) + std::string(" 004 ") + std::string(nick) + " " + std::string(hostname) + std::string(", Version: 1.0, User mode: none, Channel modes: i, t, k, o, l\r\n")
 #define ERR_NICKNAMEINUSE(target)    PREFIX " 433 " + target + " :Nickname is already in use" POSTFIX
 #define ERR_PASSWDMISMATCH(target)    PREFIX " 464 " + target + " :Password incorrect" POSTFIX //password incorroct 
-#define ERR_PASSWDMISMATCH2(target)    PREFIX " 464 " + target + " :Password required before other commands" POSTFIX //password incorroct 
+#define ERR_PASSWDINFIRST(target)    PREFIX " 464 " + target + " :Password required before other commands" POSTFIX //password incorroct 
+#define ERR_NONICKNAMEGIVEN(target) PREFIX "431 " + target + " :No nickname given" POSTFIX
+
 class Server;
 
 
