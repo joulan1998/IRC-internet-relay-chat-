@@ -16,7 +16,7 @@ void test_fun(int sig)
     }
     close(reff->_socket_fd);
     
-    std::cout << reff->_socket_fd << std::endl;
+    // std::cout << reff->_socket_fd << std::endl;
     return;
 }
 void Server::handle_nickname(Client &local_client, std::vector<std::string> table)
@@ -138,7 +138,8 @@ void Server::set_socket_addr()
          throw(std::runtime_error("allocation_error : " + std::string(strerror(errno))));
     this->_socket_addr->sin_family = AF_INET;
     this->_socket_addr->sin_port = htons(this->_port);;
-    this->_socket_addr->sin_addr.s_addr = inet_addr("127.0.0.1");
+    this->_socket_addr->sin_addr.s_addr = inet_addr("0.0.0.0");
+    // this->_socket_addr->sin_addr.s_addr = inet_addr("127.0.0.1");
 }
 
 Server::Server(std::string port, std::string password)
@@ -149,14 +150,23 @@ Server::Server(std::string port, std::string password)
 }
 
 
+// void Server::set_listen()
+// {
+//     if (listen(this->_socket_fd, MAX_CLIENT) < 0)
+//     {
+//         throw(std::runtime_error("listen_error : " + std::string(strerror(errno))));
+//     }
+// }
 void Server::set_listen()
 {
-    if (listen(this->_socket_fd, MAX_CLIENT) < 0)
-    {
-        throw(std::runtime_error("listen_error : " + std::string(strerror(errno))));
-    }
-}
+    if (this->_socket_fd < 0)
+        throw(std::runtime_error("Invalid socket file descriptor"));
 
+    if (listen(this->_socket_fd, MAX_CLIENT) < 0)
+        throw(std::runtime_error("listen_error: " + std::string(strerror(errno))));
+
+    std::cout << "Server listening on port " << this->_port << "..." << std::endl;
+}
 void Server::bind_server()
 {
     if (bind(this->_socket_fd, (struct sockaddr *)(this->_socket_addr), sizeof(sockaddr)) < 0)
@@ -256,22 +266,6 @@ void Server::print_msg(int fd, std::string msg)
         std::cout << "msg not send "<< std::endl;
 }
 
-void    Server::handle_message(Client &local_client, char *buffer, int index)
-{
-    // std::cout << local_client.fd<<std::endl;
-    std::cout << local_client.get_fd()<<std::endl;
-    std::cout << (int)*buffer << "  :" << buffer;
-    if (!*buffer)
-    {
-        // close(local_client.fd);
-        close(local_client.get_fd());
-        this->clients.erase(this->clients.begin() + index);
-        this->fds.erase(this->fds.begin() + index);
-    }
-    std::cout << "Client " << local_client.get_fd() << " :" << buffer;
-    // std::cout << "Client " << local_client.fd << " :" << buffer;
-
-}
 void Server::start_server()
 {
     create_socket();
@@ -314,23 +308,21 @@ void Server::start_server()
                 else
                 {
                     Client &local_client = this->clients[i];
-                    //hadechi bach nejib host deyal wahed l user ///// /<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<------------------------------__________----------------------
+                    //hadechi bach nejib host deyal wahed l user
                     sockaddr_in* addr_in = (sockaddr_in*)&client_addr;
                     char ip_str[INET_ADDRSTRLEN];
                     inet_ntop(AF_INET, &(addr_in->sin_addr), ip_str, INET_ADDRSTRLEN);
                     std::string client_ip(ip_str);
                     local_client.set_host(client_ip);
-                    // std::cout<< "--------- >>>>>> {"<<client_ip<<"} <<<<<< ----------"<< std::endl<<std::endl;
+
                     fcntl(local_client.get_fd(), F_SETFL, O_NONBLOCK);
                     memset(buffer, 0,1024);
                     bytes_readen = recv(local_client.get_fd(), buffer,1024, 0);
                     if (bytes_readen == 0 && clients.size() > 1)
                     {
-                        std::cout << clients.size()<< std::endl;
+                        std::cout << "CLIENT <" << local_client.get_fd() << "> disconnected !" << std::endl ; 
                         this->clients.erase(this->clients.begin() + i);
                         close((this->fds.begin() + i)->fd);
-
-                        // close(this->fds[this->fds.begin() + i].fd);
                         this->fds.erase(this->fds.begin() + i);
                         continue;
                     }
