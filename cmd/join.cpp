@@ -39,10 +39,6 @@ std::vector<std::pair<std::string, std::string> > pars_join(std::vector<std::str
     if (cmd.size() > 2){keys = split(cmd[2], ',', true);}
     
     channels = split(cmd[1], ',', true);
-    for (size_t i = 0; i < channels.size(); i++)
-    {
-        std::cout << channels[i] << std::endl;
-    }
     for(size_t j = 0; j < channels.size(); j++)
     {
         password = "";
@@ -50,8 +46,6 @@ std::vector<std::pair<std::string, std::string> > pars_join(std::vector<std::str
             password = keys[j];
         last_cmd.push_back(std::make_pair(channels[j], password));
     }
-    for (size_t i = 0; last_cmd.size() > i; i++)
-        std::cout << last_cmd[i].first << "  ==  " << last_cmd[i].second << std::endl;
     return last_cmd;
 
 }
@@ -78,7 +72,7 @@ void Server::join(Client &client, std::vector<std::string> &cmd)
             if (ch_pass[i].first[0] != '#')
             {
                 print_error(client.get_fd(), ERR_NOSUCHCHANNEL(ch_pass[i].first));
-                continue;;
+                continue;
             }
             if (addchannel(client, ch_pass[i].first) == 0)
             {
@@ -88,8 +82,9 @@ void Server::join(Client &client, std::vector<std::string> &cmd)
         }
         if (ch)
         {
-            if (ch->getFlag_i() && !(ch->is_invited(client)))
+            if (ch->getFlag_i() && (ch->is_invited(client) == false))
             {
+                std::cout << "Falg i  ===>  "<< ch->getFlag_i()<< std::endl;
                 print_error(client.get_fd(), ERR_INVITEONLYCHAN(client.get_nickname(), ch->getName_channel()));
                 continue;
             }
@@ -103,7 +98,7 @@ void Server::join(Client &client, std::vector<std::string> &cmd)
                 print_error(client.get_fd(), ERR_BADCHANNELKEY(ch->getName_channel()));
                 continue;
             }
-            if(!ch->is_client(client) )
+            if(!ch->is_client(client))
             {
                 if (!ch->is_operator(client))
                     ch->addclient(client);

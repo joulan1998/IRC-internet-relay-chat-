@@ -1,9 +1,8 @@
 #include "../includes/channel.hpp"
 #include <algorithm>
-Channel::Channel(const std::string &name) : name_channel(name){}
+Channel::Channel(const std::string &name) : name_channel(name),k(false),l(false),i(false),t(false){}
 
 std::string Channel::getName_channel(){return name_channel;}
-
 void Channel::setFlag_k(bool set_k){k = set_k;}
 bool Channel::getFlag_k(){return k;}
 
@@ -11,13 +10,7 @@ bool Channel::getFlag_l(){return l;}
 void Channel::setFlag_l(bool flag_l){l = flag_l;}
 
 bool Channel::getFlag_i(){return i;}
-void Channel::setFlag_i(bool flag_i)
-{
-    if (flag_i == true)
-        i = flag_i;
-    else
-        i = false;
-}
+void Channel::setFlag_i(bool flag_i){i = flag_i;}
 
 bool Channel::getFlag_t(){return t;}
 void Channel::setFlag_t(bool flag_t){t = flag_t;}
@@ -68,6 +61,10 @@ void Channel::add_invited(Client &_client)
     }
     if(!check)
         invited.push_back(_client);
+    for(size_t i = 0; i > invited.size(); i++)
+    {
+        std::cout << invited[i].get_nickname()<<std::endl;
+    }
 }
 
 void Channel::addclient(Client &_client)
@@ -111,7 +108,6 @@ bool Channel::is_invited(Client &_client)
 {
     for (size_t i = 0; i < invited.size(); i++)
     {
-        // if(invited[i].fd == _client.fd)
         if(invited[i].get_fd() == _client.get_fd())
             return true;
     }

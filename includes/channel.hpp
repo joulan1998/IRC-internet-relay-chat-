@@ -26,7 +26,6 @@ class Channel
         bool t;
     public:
         Channel(const std::string &name);
-        
         void setLimit(size_t l);
         size_t getLimit();
         
@@ -57,7 +56,6 @@ class Channel
         bool is_operator(Client &_client);
         bool is_client(Client &_client);
         bool is_invited(Client &_client);
-
         void send_msg_in_channel(std::string msg);
 
         std::string list_of_client();

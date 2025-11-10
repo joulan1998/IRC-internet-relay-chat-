@@ -8,15 +8,14 @@ Server *reff;
 void test_fun(int sig)
 {
     (void) sig;
-    size_t i =0;
+    size_t i = 0;
     while (i > reff->clients.size())
     {
         close(reff->clients[i].get_fd());
         i++;
     }
     close(reff->_socket_fd);
-    
-    // std::cout << reff->_socket_fd << std::endl;
+    delete(reff->_socket_addr);
     return;
 }
 void Server::handle_nickname(Client &local_client, std::vector<std::string> table)
@@ -187,7 +186,7 @@ void Server::handle_password(Client &local_client, std::string value/*,size_t in
     // else if (local_client.registred)
     else if (local_client.get_registred())
         std::cout << "you are already passed the password !" << std::endl;
-    else if(!strncmp(this->_password.c_str(), value.c_str(), value.size()))
+    else if(!strncmp(this->_password.c_str(), value.c_str(), value.size() + 1))
     {
         // local_client.registred = true;
         local_client.set_registred(true);
@@ -356,12 +355,25 @@ void Server::pars_cmd(std::string buffer, Client &local_client)
         privmsg(local_client, buffer);
     else if (split_buffer.size() && split_buffer[0] == "MODE")
         mode(local_client, buffer);
+    // else if (split_buffer.size() && split_buffer[0] == "INVITE")//
+    //     invite(local_client, buffer);
     else if (split_buffer.size() && split_buffer[0] == "QUIT")
         quit(local_client, buffer);
     else if(split_buffer.size())
         print_error(local_client.get_fd(),ERR_UNKNOWNCOMMAND(split_buffer[0]) );
     
 }
+// void Server::invite(Client &client, std::string &cmd)
+// {
+//     (void)client;
+//     std::vector<std::string> new_cmd = split(cmd, ' ', false);
+//     Channel* ch = getchannel(new_cmd[2]);
+//     Client *target = getClientByNick(new_cmd[1]);
+
+//     ch->add_invited(*target);
+//     for(size_t i = 0; i< new_cmd.size(); i++)
+//         std::cout<< new_cmd[i]<< std::endl;
+// }
 
 int Server::check_nickname(std::string name)
 {
