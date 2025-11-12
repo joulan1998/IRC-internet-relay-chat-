@@ -74,6 +74,7 @@ class Server
         void privmsg(Client &client, std::string &cmd);
         Client* getClientByNick(const std::string &nickname);
         void mode(Client &client, std::string &cmd);
+        void invite(Client &client, std::string &cmd);
         // ************************************************************
         int check_nickname(std::string name);
         

@@ -44,7 +44,7 @@ void Server::handle_nickname(Client &local_client, std::vector<std::string> tabl
         print_msg(local_client.get_fd(),  ERR_NONICKNAMEGIVEN(st));
         return;
     }
-    else if ( !table[1].empty() && (check_nickname(table[1]) == 0))
+    else if ( !table[1].empty() && (check_nickname(table[1]) == 1))
     {
         std::string st= "*";
         print_msg(local_client.get_fd(),  ERR_NICKNAMEINUSE(st));
@@ -187,7 +187,7 @@ void Server::handle_password(Client &local_client, std::string value/*,size_t in
     // else if (local_client.registred)
     else if (local_client.get_registred())
         std::cout << "you are already passed the password !" << std::endl;
-    else if(!strncmp(this->_password.c_str(), value.c_str(), value.size()))
+    else if(!strncmp(this->_password.c_str(), value.c_str(), value.size() + 1))
     {
         // local_client.registred = true;
         local_client.set_registred(true);
@@ -225,7 +225,7 @@ void Server::handle_new_client(Client &local_client, std::string buffer, size_t 
         handle_password(local_client, table[1]);
     }
     else if (((!strncmp(table[0].c_str(), "NICK\0", 5))) )
-    { 
+    {
         handle_nickname(local_client, table);
     }
     else if ((((!strncmp(table[0].c_str(), "USER\0", 5))) ) /*&& (table.size() == 5) && local_client.get_registred()*/)
@@ -358,6 +358,8 @@ void Server::pars_cmd(std::string buffer, Client &local_client)
         mode(local_client, buffer);
     else if (split_buffer.size() && split_buffer[0] == "QUIT")
         quit(local_client, buffer);
+    else if (split_buffer.size() && split_buffer[0] == "INVITE")
+        invite(local_client, buffer);
     else if(split_buffer.size())
         print_error(local_client.get_fd(),ERR_UNKNOWNCOMMAND(split_buffer[0]) );
     
@@ -369,8 +371,45 @@ int Server::check_nickname(std::string name)
     {
         if (clients[i].get_nickname() == name)
         {
-            return (0);
+            return (1);
         }
     }
-    return (1);
+    return (0);
+}
+
+
+void Server::invite(Client &client, std::string &cmd)
+{
+    std::vector<std::string> new_cmd = split(cmd, ' ', false);
+    if (new_cmd.size() != 3)
+    {
+        print_error(client.get_fd(), ERR_NEEDMOREPARAMS(client.get_nickname()));
+        return;
+    }
+    Channel *ch = getchannel(new_cmd[2]);
+    if (!ch)
+    {
+        print_error(client.get_fd(), ERR_NOSUCHCHANNEL(new_cmd[2]));
+        return;
+    }
+    if (!ch->is_client(client) && !ch->is_operator(client))
+    {
+        print_error(client.get_fd(), ERR_NOTONCHANNEL(client.get_nickname(), new_cmd[2]));
+        return;
+    }
+    if (!check_nickname(new_cmd[1]))
+    {
+        print_error(client.get_fd(), ERR_NOSUCHNICK(new_cmd[1]));
+        return;
+    }
+    Client *target = getClientByNick(new_cmd[1]);
+    if (ch->is_client(*target) || ch->is_operator(*target))
+    {
+        print_error(client.get_fd(), ERR_USERONCHANNEL(ch->getName_channel(), client.get_nickname()));
+        return;
+    }
+    if (!ch->is_invited(*target))
+        ch->add_invited(*target);
+    print_msg(target->get_fd(), RPL_INVITE(client.get_nickname(),target->get_nickname(), new_cmd[2]));
+    print_msg(client.get_fd(), RPL_INVITING(client.get_nickname(), target->get_nickname(), new_cmd[2]));
 }

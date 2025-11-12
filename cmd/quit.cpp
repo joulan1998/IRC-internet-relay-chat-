@@ -45,7 +45,6 @@ void Server::quit(Client &client, std::string &cmd)
     
     for (size_t i = 0; i < channels.size(); ++i)
     {
-        std::cout<<"\n channel number -> " << i << "\n\n";
         std::vector<Client> &ch_op = this->channels[i].getOperators();
         std::vector<Client> &cl = this->channels[i].getClients();
         quit_handler(ch_op, client,new_cmd,i,cmd);

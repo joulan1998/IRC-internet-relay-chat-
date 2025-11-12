@@ -88,7 +88,7 @@ void Server::join(Client &client, std::vector<std::string> &cmd)
         }
         if (ch)
         {
-            if (ch->getFlag_i() && !(ch->is_invited(client)))
+            if (ch->getFlag_i() && (ch->is_invited(client) == false))
             {
                 print_error(client.get_fd(), ERR_INVITEONLYCHAN(client.get_nickname(), ch->getName_channel()));
                 continue;
@@ -107,6 +107,21 @@ void Server::join(Client &client, std::vector<std::string> &cmd)
             {
                 if (!ch->is_operator(client))
                     ch->addclient(client);
+                if (ch->is_invited(client))
+                {
+                    std::cout << "size I -->   " << ch->getInviteds().size() << std::endl;
+                    ch->addclient(client);
+                    std::vector<Client>::iterator it = ch->getInviteds().begin();
+                    std::vector<Client>::iterator tmp = it;
+                    tmp ++;
+                    it = ch->getInviteds().erase(it); // erase returns new iterator
+                    if (it != ch->getInviteds().end())
+                        it  = tmp;
+                    std::cout << "switch invited to a clientnormal    :::>"<< client.get_nickname() <<std::endl;
+
+                    std::cout << "size II -->   " << ch->getInviteds().size() << std::endl;
+
+                }
                 ch->send_msg_in_channel(RPL_JOIN((client.get_nickname() + "!" + client.get_username() + "@" + client.get_host()),ch->getName_channel()));
                 print_error(client.get_fd(), RPL_NAMREPLY(client.get_nickname(), ch->getName_channel(), ch->list_of_client()));
                 print_error(client.get_fd(), RPL_ENDOFNAMES(client.get_nickname(), ch->getName_channel()));
