@@ -122,6 +122,7 @@ bool Channel::is_invited(Client &_client)
 
 void Channel::send_msg_in_channel(std::string msg)
 {
+    // puts("used");
     for(size_t i = 0; i < op.size(); i++)
     {
         // if(send(op[i].fd, msg.c_str(), msg.length(), 0) == -1)

@@ -21,14 +21,12 @@ void test_fun(int sig)
 
 void Server::handle_nickname(Client &local_client, std::string value)
 {
-    // if (!local_client.registred)
     if (!local_client.get_registred())
         std::cout << "please enter password in first !"<< std::endl;
     else if (value.empty())
         return;
     else if  (!value.empty())
         local_client.set_nickname(value);
-        // local_client.nickname = value;
     else 
         std::cout << "error nikname"<< std::endl;
 }
@@ -86,14 +84,14 @@ void Server::set_socket_addr()
          throw(std::runtime_error("allocation_error : " + std::string(strerror(errno))));
     this->_socket_addr->sin_family = AF_INET;
     this->_socket_addr->sin_port = htons(this->_port);;
-    this->_socket_addr->sin_addr.s_addr = inet_addr("127.0.0.1");
+    this->_socket_addr->sin_addr.s_addr = inet_addr("0.0.0.0");
+    // this->_socket_addr->sin_addr.s_addr = inet_addr("127.0.0.1");
 }
 
 Server::Server(std::string port, std::string password)
 {
     this->_password = password;
     this->_port = string_to_int(port);
-    // this->_port = std::stoi(port);
 }
 
 
@@ -117,15 +115,10 @@ void Server::handle_password(Client &local_client, std::string value/*,size_t in
 {
     if(value.empty())
         return;
-    // else if (local_client.registred)
     else if (local_client.get_registred())
         std::cout << "you are already passed the password !" << std::endl;
     else if(!strncmp(this->_password.c_str(), value.c_str(), value.size()))
-    {
-        // local_client.registred = true;
         local_client.set_registred(true);
-        // log_connection(local_client);
-    }
     else 
         std::cout << "handle password erroor  !" << std::endl;
 }
@@ -141,45 +134,40 @@ void Server::handle_new_client(Client &local_client, std::string buffer, size_t 
         return;
     if(temp_buff.empty())
     {
-        exit(94);
-        // close(local_client.fd);
+        // exit(94);
         close(local_client.get_fd());
         this->clients.erase(this->clients.begin() + index);
         this->fds.erase(this->fds.begin() + index);
         return;
     }
     else if ((!strncmp(table[0].c_str(), "PASS\0", 5)) || (!strncmp(table[0].c_str(), "pass\0", 5)))
-    {
-        handle_password(local_client, table[1]/*, index*/);
-    }
+         handle_password(local_client, table[1]/*, index*/);
     else if ((!strncmp(table[0].c_str(), "NICK\0", 5)) || (!strncmp(table[0].c_str(), "nick\0", 5)))
         handle_nickname(local_client, table[1]);
     else if (((!strncmp(table[0].c_str(), "USER\0", 5)) || (!strncmp(table[0].c_str(), "user\0", 5)))/* && (table.size() == 5)*/)
-    {
         handle_username(local_client, table);   
-    }
     else
         puts("unkown command during auth !");
 }
 
 
 
-void    Server::handle_message(Client &local_client, char *buffer, int index)
-{
-    // std::cout << local_client.fd<<std::endl;
-    std::cout << local_client.get_fd()<<std::endl;
-    std::cout << (int)*buffer << "  :" << buffer;
-    if (!*buffer)
-    {
-        // close(local_client.fd);
-        close(local_client.get_fd());
-        this->clients.erase(this->clients.begin() + index);
-        this->fds.erase(this->fds.begin() + index);
-    }
-    std::cout << "Client " << local_client.get_fd() << " :" << buffer;
-    // std::cout << "Client " << local_client.fd << " :" << buffer;
+// void    Server::handle_message(Client &local_client, char *buffer, int index)
+// {
+//     // std::cout << local_client.fd<<std::endl;
+//     std::cout << local_client.get_fd()<<std::endl;
+//     std::cout << (int)*buffer << "  :" << buffer;
+//     if (!*buffer)
+//     {
+//         // close(local_client.fd);
+//         close(local_client.get_fd());
+//         this->clients.erase(this->clients.begin() + index);
+//         this->fds.erase(this->fds.begin() + index);
+//     }
+//     std::cout << "Client " << local_client.get_fd() << " :" << buffer;
+//     // std::cout << "Client " << local_client.fd << " :" << buffer;
 
-}
+// }
 
 
 
@@ -208,7 +196,6 @@ void Server::start_server()
         int client_fd;
         if (poll(fds.data(), fds.size(), -1) < 0)
             throw(std::runtime_error("poll_error : " + std::string(strerror(errno))));
-            // puts("poll_error");
         for (i = 0; i < fds.size(); i++)
         {
             if (this->fds[i].revents & POLLIN)
@@ -237,11 +224,10 @@ void Server::start_server()
                     bytes_readen = recv(local_client.get_fd(), buffer,1024, 0);
                     if (bytes_readen == 0 && clients.size() > 1)
                     {
-                        puts("jojooojo");
-                        std::cout << clients.size()<< std::endl;
+                        // puts("jojooojo");
+                        // std::cout << clients.size()<< std::endl;
                         this->clients.erase(this->clients.begin() + i);
                         close((this->fds.begin() + i)->fd);
-
                         // close(this->fds[this->fds.begin() + i].fd);
                         this->fds.erase(this->fds.begin() + i);
                         continue;
@@ -251,7 +237,7 @@ void Server::start_server()
                     if (!local_client.get_authenticated() && local_client.get_fd() != this->_socket_fd)
                     {
                         handle_new_client(local_client, buffer, i);
-                        send(local_client.get_fd(), "PRIVMSG : TimeBot !time", 24, 0);
+                        // send(local_client.get_fd(), "PRIVMSG : TimeBot !time", 24, 0);
 
                     }
                     else 
@@ -359,32 +345,35 @@ void Server::join(Client &client, std::vector<std::string> &cmd)
         }
         if(!ch)
         {
-            
+            if (ch_pass[i].first[0] != '#')
+            {
+                print_error(client.get_fd(), ERR_NOSUCHCHANNEL(ch_pass[i].first));
+                continue;;
+            }
             if (addchannel(client, ch_pass[i].first) == 0)
             {
                 ch = getchannel(ch_pass[i].first);
                 ch->addoperator(client);
-                if (ch_pass[i].second.empty())//TODO hada tah ghir tmp bach n testi bih
-                {
-                    ch->setPassword(ch_pass[i].second);
-                    ch->setFlag_k(true);
-                }
-                ch->setFlag_l(true);
-                ch->setLimit(2);
+                // if (ch_pass[i].second.empty())//TODO hada tah ghir tmp bach n testi bih
+                // {
+                //     ch->setPassword(ch_pass[i].second);
+                //     ch->setFlag_k(true);
+                // }
+                // ch->setFlag_l(true);
+                // ch->setLimit(2);
             }
         }
-
         if (ch)
         {
-            if (ch->getFlag_i() && !(ch->is_invited(client)))
-            {
-                print_error(client.get_fd(), ERR_INVITEONLYCHAN(client.get_nickname(), ch->getName_channel()));
-                continue;
-            }
+            // if (ch->getFlag_i() && !(ch->is_invited(client)))
+            // {
+            //     print_error(client.get_fd(), ERR_INVITEONLYCHAN(client.get_nickname(), ch->getName_channel()));
+            //     continue;
+            // }
             if (ch->getFlag_l() && (ch->getLimit() == (ch->getOperators().size() + ch->getClients().size())))
             {
                 print_error(client.get_fd(), ERR_CHANNELISFULL(client.get_nickname() ,ch->getName_channel()));
-                    continue;
+                continue;
             }
             if (ch->getFlag_k()  && ch->getPassword() != ch_pass[i].second)
             {
@@ -395,17 +384,92 @@ void Server::join(Client &client, std::vector<std::string> &cmd)
             {
                 if (!ch->is_operator(client))
                     ch->addclient(client);
-
-                ch->send_msg_in_channel(RPL_JOIN(client.get_nickname(),ch->getName_channel()));
+                
+                ch->send_msg_in_channel(RPL_JOIN((client.get_nickname() + "!" + client.get_username() + "@" + client.get_host()),ch->getName_channel()));
                 print_error(client.get_fd(), RPL_NAMREPLY(client.get_nickname(), ch->getName_channel(), ch->list_of_client()));
                 print_error(client.get_fd(), RPL_ENDOFNAMES(client.get_nickname(), ch->getName_channel()));
-
+                if (!ch->is_operator(client))
+                {
+                    if (ch->getTopic().empty())
+                    {
+                       print_error(client.get_fd(), RPL_NOTOPIC(client.get_nickname(), ch->getName_channel()));
+                    }
+                    else
+                    {
+                       print_error(client.get_fd(), RPL_TOPIC(client.get_nickname(), ch->getName_channel(), ch->getTopic()));
+                       std::cout << ch->getTopic();
+                    }
+                }
             }
-
-        
         }
     }
 }
+// void Server::join(Client &client, std::vector<std::string> &cmd)
+// {
+//     if(cmd.size() < 2 )
+//     {
+//         print_error(client.get_fd(), ERR_NEEDMOREPARAMS(client.get_username()));
+//         return;
+//     }
+//     std::vector<std::pair<std::string, std::string> > ch_pass = pars_join(cmd) ;
+//     std::string msg;
+//     for (size_t i = 0; i < ch_pass.size(); i++)
+//     {
+//         Channel *ch = getchannel(ch_pass[i].first);
+//         if (ch && (ch->is_client(client) || ch->is_operator(client)))
+//         {
+//             print_error(client.get_fd(), ERR_USERONCHANNEL(ch->getName_channel(), client.get_nickname()));
+//             continue;
+//         }
+//         if(!ch)
+//         {
+            
+//             if (addchannel(client, ch_pass[i].first) == 0)
+//             {
+//                 ch = getchannel(ch_pass[i].first);
+//                 ch->addoperator(client);
+//                 if (ch_pass[i].second.empty())//TODO hada tah ghir tmp bach n testi bih
+//                 {
+//                     ch->setPassword(ch_pass[i].second);
+//                     ch->setFlag_k(true);
+//                 }
+//                 ch->setFlag_l(true);
+//                 ch->setLimit(2);
+//             }
+//         }
+
+//         if (ch)
+//         {
+//             if (ch->getFlag_i() && !(ch->is_invited(client)))
+//             {
+//                 print_error(client.get_fd(), ERR_INVITEONLYCHAN(client.get_nickname(), ch->getName_channel()));
+//                 continue;
+//             }
+//             if (ch->getFlag_l() && (ch->getLimit() == (ch->getOperators().size() + ch->getClients().size())))
+//             {
+//                 print_error(client.get_fd(), ERR_CHANNELISFULL(client.get_nickname() ,ch->getName_channel()));
+//                     continue;
+//             }
+//             if (ch->getFlag_k()  && ch->getPassword() != ch_pass[i].second)
+//             {
+//                 print_error(client.get_fd(), ERR_BADCHANNELKEY(ch->getName_channel()));
+//                 continue;
+//             }
+//             if(!ch->is_client(client) )
+//             {
+//                 if (!ch->is_operator(client))
+//                     ch->addclient(client);
+
+//                 ch->send_msg_in_channel(RPL_JOIN(client.get_nickname(),ch->getName_channel()));
+//                 print_error(client.get_fd(), RPL_NAMREPLY(client.get_nickname(), ch->getName_channel(), ch->list_of_client()));
+//                 print_error(client.get_fd(), RPL_ENDOFNAMES(client.get_nickname(), ch->getName_channel()));
+
+//             }
+
+        
+//         }
+//     }
+// }
 // void Server::join(Client &client, std::vector<std::string> &cmd)
 // {
 //     if(cmd.size() < 2 )
@@ -610,7 +674,7 @@ void Server::privmsg(Client &client, std::string &cmd)
     }
 
     // Build the full IRC line
-    std::string fullMessage = ":" + client.get_nickname() + "!" + client.get_username() + "@" + client.get_host() + " PRIVMSG " + target + " :" + message + POSTFIX;
+    std::string fullMessage = ":" + client.get_nickname() + "!" + client.get_username() + "@" + client.get_host() + " PRIVMSG " + target + " :" + message /*+ POSTFIX*/;
 
     // Channel target
     if (!target.empty() && target[0] == '#') {

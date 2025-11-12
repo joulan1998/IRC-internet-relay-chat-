@@ -61,6 +61,7 @@ void cleanString(std::string &s)
     s.erase(std::remove(s.begin(), s.end(), '\r'), s.end());
     s.erase(std::remove(s.begin(), s.end(), '\n'), s.end());
 }
+
 std::vector<std::string> split(std::string &str, char delem, bool flag)
 {
     std::vector<std::string> last_cmd;

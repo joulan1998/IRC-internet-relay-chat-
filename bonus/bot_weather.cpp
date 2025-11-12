@@ -9,7 +9,8 @@ void my_sleep( float seconds)
 
 void sendIRC(int sock, const std::string &msg)
 {
-    std::string full = msg + "\r\n";
+    // std::string full = msg + "\r\n";
+    std::string full = msg /*+ "\n"*/;
     send(sock, full.c_str(), full.size(), 0);
 }
 
@@ -73,7 +74,7 @@ int main(int argc, char* argv[])
         std::string msg(buffer);
         // std::cout << msg;  // Print server messages
         // Respond to server PING
-        puts(msg.c_str());
+        // puts(msg.c_str());
             // puts(reply.c_str());
         // if (msg.find("PRIVMSG") != std::string::npos &&
         //     msg.find("PING") != std::string::npos)
