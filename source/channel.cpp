@@ -3,7 +3,6 @@
 Channel::Channel(const std::string &name) : name_channel(name),k(false),l(false),i(false),t(false){}
 
 std::string Channel::getName_channel(){return name_channel;}
-
 void Channel::setFlag_k(bool set_k){k = set_k;}
 bool Channel::getFlag_k(){return k;}
 
@@ -62,6 +61,10 @@ void Channel::add_invited(Client &_client)
     }
     if(!check)
         invited.push_back(_client);
+    for(size_t i = 0; i > invited.size(); i++)
+    {
+        std::cout << invited[i].get_nickname()<<std::endl;
+    }
 }
 
 void Channel::addclient(Client &_client)
@@ -105,7 +108,6 @@ bool Channel::is_invited(Client &_client)
 {
     for (size_t i = 0; i < invited.size(); i++)
     {
-        // if(invited[i].fd == _client.fd)
         if(invited[i].get_fd() == _client.get_fd())
             return true;
     }
