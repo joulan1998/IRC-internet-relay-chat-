@@ -163,3 +163,25 @@ void Channel::removeOperator(Client &_client) {
         }
     }
 }
+void Channel::remove_client(std::string nickname)
+{
+    if (!nickname.empty())
+    {
+        for (size_t i = 0; i < this->clients.size(); i++)
+        {
+            if (this->clients[i].get_nickname() == nickname)
+            {
+                this->clients.erase(this->clients.begin() + i);
+                return; // Exit after removing the client
+            }
+        }
+        for (size_t i = 0; i < this->getOperators().size(); i++)
+        {
+            if (this->op[i].get_nickname() == nickname)
+            {
+                this->op.erase(this->op.begin() + i);
+                return; // Exit after removing the client
+            }
+        }
+    }
+}

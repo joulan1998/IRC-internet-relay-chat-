@@ -42,6 +42,8 @@
 #define RPL_PRIVMSG(sender, username, ip, target, msg)": " + sender + "!" + username + "@" + ip + " PRIVMSG " + target + " :" + msg + POSTFIX 
 #define RPL_INVITING(nickname, targnick, targchan)  ": 341 " + nickname + " " + targnick + " " + targchan + POSTFIX
 #define RPL_INVITE(sender, target, channel)": " + sender + " INVITE " + target + " " + channel + POSTFIX
+#define RPL_KICK(kikker, target, channel, reason)    ":" +  kikker +" KICK " + channel + " " + target + " :" + reason + POSTFIX
+
 ///////////////
 #define RPL_WELCOME(nick, hostname)  std::string("\r\n:") + std::string(hostname) + std::string(" 001 ") + std::string(nick) + std::string(" :Welcome to the Internet Relay Chat Network ") + std::string(nick) + "!~" + std::string(nick) + "@" + std::string(hostname) + "\r\n"
 #define RPL_YOURHOST(nick, hostname) std::string(":") + std::string(hostname) + std::string(" 002 ") + std::string(nick) + std::string(" :Your host is ") + std::string(hostname) + std::string(", running version 1.0\r\n")

@@ -264,7 +264,7 @@ void Server::print_msg(int fd, std::string msg)
     if (send(fd, msg.c_str(), msg.length(), 0) == -1)
         std::cout << "msg not send "<< std::endl;
 }
-
+std::vector<Channel> Server::get_channels(){return channels;}
 void Server::start_server()
 {
     create_socket();
@@ -355,8 +355,8 @@ void Server::pars_cmd(std::string buffer, Client &local_client)
         privmsg(local_client, buffer);
     else if (split_buffer.size() && split_buffer[0] == "MODE")
         mode(local_client, buffer);
-    // else if (split_buffer.size() && split_buffer[0] == "INVITE")//
-    //     invite(local_client, buffer);
+    else if (split_buffer.size() && split_buffer[0] == "KICK")
+        kick(local_client , split_buffer, buffer);
     else if (split_buffer.size() && split_buffer[0] == "QUIT")
         quit(local_client, buffer);
     else if (split_buffer.size() && split_buffer[0] == "INVITE")
@@ -365,17 +365,7 @@ void Server::pars_cmd(std::string buffer, Client &local_client)
         print_error(local_client.get_fd(),ERR_UNKNOWNCOMMAND(split_buffer[0]) );
     
 }
-// void Server::invite(Client &client, std::string &cmd)
-// {
-//     (void)client;
-//     std::vector<std::string> new_cmd = split(cmd, ' ', false);
-//     Channel* ch = getchannel(new_cmd[2]);
-//     Client *target = getClientByNick(new_cmd[1]);
 
-//     ch->add_invited(*target);
-//     for(size_t i = 0; i< new_cmd.size(); i++)
-//         std::cout<< new_cmd[i]<< std::endl;
-// }
 
 int Server::check_nickname(std::string name)
 {
@@ -389,7 +379,39 @@ int Server::check_nickname(std::string name)
     return (0);
 }
 
-
+void Server::clean_channels(Channel &channel)
+{
+    for (size_t i = 0; i < this->channels.size(); i++)
+    {
+        if (this->channels[i].getName_channel() == channel.getName_channel())
+        {
+            this->channels.erase(this->channels.begin() + i);
+            break;
+        }
+    }
+}
+void Server::remove_client_in_server(Client &client)
+{
+    
+    for (size_t i = 0; i < this->clients.size(); i++)
+    {
+        if (this->clients[i].get_fd() == client.get_fd())
+        {
+            this->clients.erase(this->clients.begin() + i);
+            this->fds.erase(this->fds.begin() + i);
+            break;
+        }
+    }
+    // for (size_t i = 0; i < this->fds.size(); i++)
+    // {
+    //     if (this->fds[i].fd == client.get_fd())
+    //     {
+    //         this->fds.erase(this->fds.begin() + i);
+    //         break;
+    //     }
+    // }
+    // close
+}
 void Server::invite(Client &client, std::string &cmd)
 {
     std::vector<std::string> new_cmd = split(cmd, ' ', false);

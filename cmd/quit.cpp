@@ -30,7 +30,7 @@ void Server::quit_handler(std::vector<Client> &new_cl, Client &client, std::vect
             else if (cmd[index] == ':')
             {
                 index++;
-                reasen = &cmd[index];
+                reasen = &cmd[index]; 
             }
             channels[i].send_msg_in_channel(RPL_QUIT((client.get_nickname() + "!" + client.get_username() + "@" + client.get_host()), reasen));
         }
@@ -43,7 +43,7 @@ void Server::quit(Client &client, std::string &cmd)
 {
     std::vector<std::string> new_cmd = split(cmd, ' ', false);
     
-    for (size_t i = 0; i < channels.size(); ++i)
+    for (size_t i = 0; i < channels.size(); i++)
     {
         std::vector<Client> &ch_op = this->channels[i].getOperators();
         std::vector<Client> &cl = this->channels[i].getClients();
@@ -57,6 +57,26 @@ void Server::quit(Client &client, std::string &cmd)
             channels[i].send_msg_in_channel(RPL_UMODEIS(client.get_nickname(), this->channels[i].getName_channel(), "+o",ch_op[0].get_nickname()));
         }
     }
-    close(client.get_fd());
-    
+    close(client.get_fd()); 
+    remove_client_in_server(client);
+  //TODO MSEH CHANNEL LKHAWIN
+
+  
+    std::cout << "       size of chanel ===>>   "<<channels.size()<< std::endl<< std::endl;
+    for(size_t i = 0; i < channels.size(); i++)
+    {
+        if (channels[i].getClients().empty()  && channels[i].getOperators().empty())
+        {
+            std::cout << "channel   ==>  "<<channels[i].getName_channel()<< std::endl;
+            this->channels.erase(this->channels.begin() + i);
+            i--;
+        }
+    }
+        std::cout << "       size of chanel ===>>   "<<channels.size()<< std::endl<< std::endl;
+    std::cout << "       -----------------------------     "<<std::endl<< std::endl;
+
+    for(size_t i = 0; i < channels.size(); i++)
+    {
+            std::cout << "channel   ==>  "<<channels[i].getName_channel()<< std::endl;
+    }
 }
