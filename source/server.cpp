@@ -1,102 +1,129 @@
-#include  "../includes/server.hpp"
-#include  "../includes/channel.hpp"
 #include "../includes/includes.hpp"
 
-
-size_t table_size(char **table)
+Server* Server::instance = NULL;
+Server *reff;
+// the function for closing the fd
+void test_fun(int sig)
 {
+    (void) sig;
     size_t i = 0;
-    while (table[i])
+    while (i > reff->clients.size())
+    {
+        close(reff->clients[i].get_fd());
         i++;
-    return (i);
+    }
+    close(reff->_socket_fd);
+    delete(reff->_socket_addr);
+    return;
 }
-
-
-
-void Server::handle_nickname(Client &local_client)
+void Channel::remove_client(std::string nickname)
 {
-    char **table = NULL;
-    char buffer[1024];
-    bool result = false;
-
-    while (!result)
+    if (!nickname.empty())
     {
-        memset(buffer, 0, sizeof(buffer));
-        // free_table(table, table_size(table));      table freeing
-        ssize_t bytes_received = recv(local_client.fd, buffer, sizeof(buffer), 0);
-        if (bytes_received < 0)
+        for (size_t i = 0; i < this->clients.size(); i++)
         {
-            if (errno == EAGAIN || errno == EWOULDBLOCK)
-                continue;
-        }
-        else if (bytes_received == 0)
-        {
-            // here where i should handle when CTRL + C pressed !
-                exit(11);
-                // continue;
-        }
-        // Split the received buffer into tokens
-        table = ft_split(buffer, ' ');
-        if (*table == NULL)
-            continue;
-        if ((table_size(table) == 2))
-        {
-            table[0][4] = '\0'; //to replace '\n' by split<
-            table[1][strlen(table[1])] = '\0'; //to replace '\n' by split<
-            if ((!strncmp(table[0], "NICK\0", 5)))
+            if (this->clients[i].get_nickname() == nickname)
             {
-                puts("NICKNAME handling done!!");
-                local_client.nickname = (table[1]);
-                result = true;
-                // return;
+                this->clients.erase(this->clients.begin() + i);
+                return; // Exit after removing the client
+            }
+        }
+        for (size_t i = 0; i < this->getOperators().size(); i++)
+        {
+            if (this->op[i].get_nickname() == nickname)
+            {
+                this->op.erase(this->op.begin() + i);
+                return; // Exit after removing the client
             }
         }
     }
-    // should  Free allocated memory for table
 }
 
-void Server::handle_username(Client &local_client)
+void Server::handle_nickname(Client &local_client, std::vector<std::string> table)
 {
-    char **table = NULL;
-    char buffer[1024];
-    bool result = false;
-
-    // fcntl(local_client.fd, F_SETFL, O_NONBLOCK);
-    while (!result)
+    if (!local_client.get_nickname().empty())
     {
-        memset(buffer, 0, sizeof(buffer));
-        // free_table(table, table_size(table));      table freeing
-        ssize_t bytes_received = recv(local_client.fd, buffer, sizeof(buffer), 0);
-        if (bytes_received < 0)
-        {
-            if (errno == EAGAIN || errno == EWOULDBLOCK)
-                continue;
-        }
-        else if (bytes_received == 0)
-        {
-            // here where i should handle when CTRL + C pressed !
-                exit(11);
-                // continue;
-        }
-        // Split the received buffer into tokens
-        table = ft_split(buffer, ' ');
-        if (*table == NULL)
-            continue;
-        if ((table_size(table) == 2))
-        {
-            table[0][4] = '\0'; //to replace '\n' by split<
-            table[1][strlen(table[1])] = '\0'; //to replace '\n' by split<
-            if ((!strncmp(table[0], "USER\0", 5)))
-            {
-                puts("USERNAME handling done!!");
-                local_client.username = (table[1]);
-                result = true;
-                // return;
-            }
-        }
+        print_msg(local_client.get_fd(),  ERR_UNKNOWNCOMMAND(table[0]));
+        return ;
     }
-    // should  Free allocated memory for table
+    if (!local_client.get_registred())
+    {
+        std::string st= "*";
+        print_msg(local_client.get_fd(),  ERR_PASSWDINFIRST(st));
+        return ;
+    }
+    else if (table.size() == 1)
+    {
+        std::string st= "NICK";
+        print_msg(local_client.get_fd(),  ERR_NEEDMOREPARAMS(st));
+        return;
+    }
+    else if (table.size() != 2)
+    {
+        std::string st= "*";
+        print_msg(local_client.get_fd(),  ERR_NONICKNAMEGIVEN(st));
+        return;
+    }
+    else if ( !table[1].empty() && (check_nickname(table[1]) == 0))
+    {
+        std::string st= "*";
+        print_msg(local_client.get_fd(),  ERR_NICKNAMEINUSE(st));
+        return;
+    }
+    else if  (!table[1].empty())
+    {
+        local_client.set_nickname(table[1]);
+        if (!local_client.get_nickname().empty() && !local_client.get_realname().empty() && !local_client.get_hostname().empty() && !local_client.get_servername().empty())
+        {
+            local_client.set_authenticated(true);
+            //msg start for server after start
+            print_error(local_client.get_fd(), RPL_WELCOME(local_client.get_nickname(), local_client.get_hostname()));
+            print_error(local_client.get_fd(), RPL_YOURHOST(local_client.get_nickname(), local_client.get_hostname()));
+            print_error(local_client.get_fd(), RPL_CREATED(local_client.get_nickname(), local_client.get_hostname()));
+            print_error(local_client.get_fd(), RPL_MYINFO(local_client.get_nickname(), local_client.get_hostname()));
+        }
+        std::cout<<"Client <"<<local_client.get_fd()<<"> set NICK: "<< local_client.get_nickname() <<std::endl;
+    }
+    else 
+        std::cout << "error nikname"<< std::endl;
 }
+
+void Server::handle_username(Client &local_client, std::vector<std::string> table)
+{   
+    if (!local_client.get_registred())
+    {
+        std::string st= "*";
+        print_msg(local_client.get_fd(),  ERR_PASSWDINFIRST(st));
+        return;
+    }
+    // else if (local_client.get_registred())
+    else if (local_client.get_registred() && (table.size() == 5) )
+    {
+        local_client.set_username(table[1]);
+        local_client.set_hostname(table[2]);
+        local_client.set_servername(table[3]);
+        local_client.set_realname(table[4]);
+        std::cout << "Client <" << local_client.get_fd() << "> set USER: "<<local_client.get_username()<< " HOST: "<<local_client.get_hostname()<< " SERV: "<<local_client.get_servername()<< " REAL: "<<local_client.get_realname()<< std::endl;
+        if(!local_client.get_nickname().empty())
+        {
+            local_client.set_authenticated(true);
+            //msg start for server after start
+            print_error(local_client.get_fd(), RPL_WELCOME(local_client.get_nickname(), local_client.get_hostname()));
+            print_error(local_client.get_fd(), RPL_YOURHOST(local_client.get_nickname(), local_client.get_hostname()));
+            print_error(local_client.get_fd(), RPL_CREATED(local_client.get_nickname(), local_client.get_hostname()));
+            print_error(local_client.get_fd(), RPL_MYINFO(local_client.get_nickname(), local_client.get_hostname()));
+        }
+
+    }
+    else 
+    {
+        std::string st= "USER";
+        print_msg(local_client.get_fd(),  ERR_NEEDMOREPARAMS(st));
+        return;
+    }
+}
+
+
 void Server::create_socket()
 {
     int local_socket;
@@ -108,7 +135,7 @@ void Server::create_socket()
     this->_socket_fd = local_socket;
 }
 
-void Server::set_non_clocking()
+void Server::set_non_blocking()
 {
     fcntl(this->_socket_fd, F_SETFL, O_NONBLOCK);
 }
@@ -131,7 +158,8 @@ void Server::set_socket_addr()
          throw(std::runtime_error("allocation_error : " + std::string(strerror(errno))));
     this->_socket_addr->sin_family = AF_INET;
     this->_socket_addr->sin_port = htons(this->_port);;
-    this->_socket_addr->sin_addr.s_addr = inet_addr("127.0.0.1");
+    this->_socket_addr->sin_addr.s_addr = inet_addr("0.0.0.0");
+    // this->_socket_addr->sin_addr.s_addr = inet_addr("127.0.0.1");
 }
 
 Server::Server(std::string port, std::string password)
@@ -142,14 +170,23 @@ Server::Server(std::string port, std::string password)
 }
 
 
+// void Server::set_listen()
+// {
+//     if (listen(this->_socket_fd, MAX_CLIENT) < 0)
+//     {
+//         throw(std::runtime_error("listen_error : " + std::string(strerror(errno))));
+//     }
+// }
 void Server::set_listen()
 {
-    if (listen(this->_socket_fd, MAX_CLIENT) < 0)
-    {
-        throw(std::runtime_error("listen_error : " + std::string(strerror(errno))));
-    }
-}
+    if (this->_socket_fd < 0)
+        throw(std::runtime_error("Invalid socket file descriptor"));
 
+    if (listen(this->_socket_fd, MAX_CLIENT) < 0)
+        throw(std::runtime_error("listen_error: " + std::string(strerror(errno))));
+
+    std::cout << "Server listening on port " << this->_port << "..." << std::endl;
+}
 void Server::bind_server()
 {
     if (bind(this->_socket_fd, (struct sockaddr *)(this->_socket_addr), sizeof(sockaddr)) < 0)
@@ -157,95 +194,118 @@ void Server::bind_server()
         throw(std::runtime_error("bind_error : " + std::string(strerror(errno))));
     }
 }
-void Server::handle_password(Client &local_client)
-{
-    char **table = NULL;
-    char buffer[1024];
-    bool result = false;
 
-    // fcntl(local_client.fd, F_SETFL, O_NONBLOCK);
-    while (!result)
+void Server::handle_password(Client &local_client, std::string value/*,size_t index*/)
+{
+    //ddhjsdhjdhjhsdjsdssd
+    if(value.empty())
     {
-        memset(buffer, 0, sizeof(buffer));
-        // free_table(table, table_size(table));      table freeing
-        ssize_t bytes_received = recv(local_client.fd, buffer, sizeof(buffer), 0);
-        if (bytes_received < 0)
-        {
-            if (errno == EAGAIN || errno == EWOULDBLOCK)
-                continue;
-        }
-        else if (bytes_received == 0)
-        {
-            // here where i should handle when CTRL + C pressed !
-                exit(11);
-                // continue;
-        }
-        // Split the received buffer into tokens
-        table = ft_split(buffer, ' ');
-        if (*table == NULL)
-            continue;
-        if ((table_size(table) == 2))
-        {
-            table[0][4] = '\0'; //to replace '\n' by split<
-            table[1][strlen(table[1])] = '\0'; //to replace '\n' by split<
-            if ((!strncmp(table[0], "PASS\0", 5)) && (!strncmp(table[1], this->_password.c_str(), strlen(table[1]+1))))
-            {
-                puts("PASSOWRD handling done!!");
-                result = true;
-                // return;
-            }
-        }
+        std::string st= "PASS";
+        print_msg(local_client.get_fd(),  ERR_NEEDMOREPARAMS(st));
+        return;
     }
-    // should  Free allocated memory for table
-}
-
-
-
-void Server::handle_new_client(Client &local_client)
-{
-
-        handle_password(local_client);
-        while (local_client.nickname == "")
-            handle_nickname(local_client/*, i*/);
-        while (local_client.username == "")
-            handle_username(local_client/*, i*/);
-        local_client.authenticated = true;
-}
-
-
-
-void    Server::handle_message(Client &local_client, char *buffer, int index)
-{
-    std::cout << local_client.fd<<std::endl;
-    std::cout << (int)*buffer << "  :" << buffer;
-    if (!*buffer)
+    // else if (local_client.registred)
+    else if (local_client.get_registred())
+        std::cout << "you are already passed the password !" << std::endl;
+    else if(!strncmp(this->_password.c_str(), value.c_str(), value.size() + 1))
     {
-        close(local_client.fd);
+        // local_client.registred = true;
+        local_client.set_registred(true);
+        std::cout << "Client <" << local_client.get_fd() << "> authenticated successfully." << std::endl;
+        // log_connection(local_client);
+    }
+    else
+    {
+        std::string st= "*";
+        print_msg(local_client.get_fd(),  ERR_PASSWDMISMATCH(st));
+        return;
+    }
+}
+
+
+
+// void Server::handle_new_client(Client &local_client)
+void Server::handle_new_client(Client &local_client, std::string buffer, size_t index)
+{
+    std::string temp_buff(buffer);
+    std::vector<std::string> table = split(temp_buff, ' ' ,false);
+    if (table.empty())
+        return;
+    to_upper(table[0]);
+    if(temp_buff.empty())
+    {
+        // close(local_client.fd);
+        close(local_client.get_fd());
         this->clients.erase(this->clients.begin() + index);
         this->fds.erase(this->fds.begin() + index);
+        return;
     }
-    std::cout << "Client " << local_client.fd << " :" << buffer;
+    else if (((!strncmp(table[0].c_str(), "PASS\0", 5))) && !local_client.get_registred())
+    {
+        handle_password(local_client, table[1]);
+    }
+    else if (((!strncmp(table[0].c_str(), "NICK\0", 5))) )
+    { 
+        handle_nickname(local_client, table);
+    }
+    else if ((((!strncmp(table[0].c_str(), "USER\0", 5))) ) /*&& (table.size() == 5) && local_client.get_registred()*/)
+    {
+        handle_username(local_client, table);
+    }
+    else if (!local_client.get_registred())
+    {
+        std::string st= "*";
+        print_msg(local_client.get_fd(),  ERR_PASSWDINFIRST(st));
+        return ;
+    }
+    else //((!strncmp(table[0].c_str(), "USER\0", 5) || (!strncmp(table[0].c_str(), "NICK\0", 5)) )  && !local_client.get_registred()/* && (table.size() == 5)*/)
+    {
+        print_msg(local_client.get_fd(),  ERR_UNKNOWNCOMMAND(table[0]));
+    }
+
+    // else if ((!strncmp(table[0].c_str(), "USER\0", 5) || (!strncmp(table[0].c_str(), "NICK\0", 5)) )  && !local_client.get_registred()/* && (table.size() == 5)*/)
+    // {
+    //     std::string st= "*";
+    //     print_msg(local_client.get_fd(),  ERR_PASSWDINFIRST(st));
+    // }
+    // else if (local_client.get_registred())
+    // {
+    //     print_msg(local_client.get_fd(),  ERR_UNKNOWNCOMMAND(table[0]));
+    // }
+    // else
+    // {
+    //     std::string st= "*";
+    //     print_msg(local_client.get_fd(),  ERR_PASSWDINFIRST(st));
+    // }
 
 }
 
+void Server::print_msg(int fd, std::string msg)
+{
+    if (send(fd, msg.c_str(), msg.length(), 0) == -1)
+        std::cout << "msg not send "<< std::endl;
+}
 
 void Server::start_server()
 {
     create_socket();
-    set_non_clocking();
+    set_non_blocking();
     set_socket_addr();
     socket_options();
     bind_server();
     set_listen();
-    // signal(SIGINT, test_fun(SIGINT));
-
+    //    instance = this;
+    reff = this;
+    signal(SIGINT, test_fun);
+    signal(SIGQUIT, test_fun);
 
     this->fds.push_back((pollfd){this->_socket_fd, POLLIN, 0});
-    this->clients.push_back((Client){this->_socket_fd, true,"", ""});
-    
-    puts(this->_password.c_str());
+    this->clients.push_back(Client(this->_socket_fd)); // <<<<<< should set REGISTRED to true
+
     size_t i =0;
+    ssize_t bytes_readen = 0;
     char buffer[1024];
+    std::cout << "-------SERVER START SUCCESSFULLY-------"<< std::endl;
     while(1)
     {
         int client_fd;
@@ -255,309 +315,141 @@ void Server::start_server()
         {
             if (this->fds[i].revents & POLLIN)
             {
-                // std::string welcome_str = "to connect use : PASS <password>\n";
                 sockaddr client_addr;
                 socklen_t client_len = sizeof(client_addr);
                 if (this->fds[i].fd == this->_socket_fd)
                 {
                     client_fd = accept(this->_socket_fd, &client_addr, &client_len);
-                    // if (send(client_fd, welcome_str.c_str(), welcome_str.size(), 0) < 0)
-                        // throw(std::runtime_error("send_error : " + std::string(strerror(errno))));
+                    std::cout << "Client: " << client_fd << " is connected.\r\n";
                     this->fds.push_back((pollfd){client_fd, POLLIN, 0});
-                    // std::find(this->clients.begin(), this->fds->end(), this->clients.firs)     <<<<<<<<<<<<<<<<<<<<<<<<<
-                    this->clients.push_back((Client){client_fd, false, "", ""});
+                    this->clients.push_back(Client(client_fd));
+                    // this->clients.push_back((Client){client_fd, false, false, "", "", "", "", ""});
                 }
                 else
                 {
                     Client &local_client = this->clients[i];
-                    fcntl(local_client.fd, F_SETFL, O_NONBLOCK);
-                    if (!local_client.authenticated && local_client.fd != this->_socket_fd)
-                        handle_new_client(local_client);
-                    if ((this->fds[i].revents & POLLIN) && (local_client.fd != this->_socket_fd) && (local_client.authenticated) && (local_client.fd != this->_socket_fd))
-                    {
-                         std::string new_buffer(buffer);
-                        if (new_buffer.empty())
-                            return;
-                        std::vector<std::string> split_buffer = split(new_buffer, ' ', false);
-                        if (split_buffer.size() && split_buffer[0] == "join")
-                            join(local_client, split_buffer);
-                        else if (split_buffer.size() && split_buffer[0] == "topic")
-                            topic(local_client, buffer);
-                        else if(split_buffer.size())
-                            print_error(local_client.fd,ERR_UNKNOWNCOMMAND(split_buffer[0]) );
+                    //hadechi bach nejib host deyal wahed l user
+                    sockaddr_in* addr_in = (sockaddr_in*)&client_addr;
+                    char ip_str[INET_ADDRSTRLEN];
+                    inet_ntop(AF_INET, &(addr_in->sin_addr), ip_str, INET_ADDRSTRLEN);
+                    std::string client_ip(ip_str);
+                    local_client.set_host(client_ip);
 
+                    fcntl(local_client.get_fd(), F_SETFL, O_NONBLOCK);
+                    memset(buffer, 0,1024);
+                    bytes_readen = recv(local_client.get_fd(), buffer,1024, 0);
+                    if (bytes_readen == 0 && clients.size() > 1)
+                    {
+                        std::cout << "CLIENT <" << local_client.get_fd() << "> disconnected !" << std::endl ; 
+                        this->clients.erase(this->clients.begin() + i);
+                        close((this->fds.begin() + i)->fd);
+                        this->fds.erase(this->fds.begin() + i);
+                        continue;
+                    }
+                    else if (bytes_readen < 0 )
+                        throw(std::runtime_error("poll_error : " + std::string(strerror(errno))));
+                    if (!local_client.get_authenticated() && local_client.get_fd() != this->_socket_fd)
+                    {
+                        handle_new_client(local_client, buffer, i);
+                    }
+                    else 
+                    {
+                        std::string new_buffer(buffer);
+                        pars_cmd(buffer, local_client);
                     }
                 }
             }
         }
-
     }
-
 }
 
-
-
-
-
-
-
-
-
-
-////////////
-
-// void Server::start_server()
-// {
-//     create_socket();
-//     set_non_clocking();
-//     set_socket_addr();
-//     socket_options();
-//     bind_server();
-//     set_listen();
-//     // signal(SIGINT, test_fun(SIGINT));
-
-
-//     this->fds.push_back((pollfd){this->_socket_fd, POLLIN, 0});
-//     this->clients.push_back((Client){this->_socket_fd, true,"", ""});
+void Server::pars_cmd(std::string buffer, Client &local_client)
+{
+    std::vector<std::string> split_buffer = split(buffer, ' ', false);
+    if (!split_buffer.size()) return;
+    to_upper(split_buffer[0]);
+    if (split_buffer.size() && split_buffer[0] == "JOIN")
+        join(local_client, split_buffer);
+    else if (split_buffer.size() && split_buffer[0] == "TOPIC")
+        topic(local_client, buffer);
+    else if (split_buffer.size() && split_buffer[0] == "PRIVMSG")
+        privmsg(local_client, buffer);
+    else if (split_buffer.size() && split_buffer[0] == "MODE")
+        mode(local_client, buffer);
+    // else if (split_buffer.size() && split_buffer[0] == "INVITE")//
+    //     invite(local_client, buffer);
+    else if (split_buffer.size() && split_buffer[0] == "QUIT")
+        quit(local_client, buffer);
+    else if (split_buffer.size() && split_buffer[0] == "KICK")
+        kick(local_client , split_buffer);                                          //<<<<<<<<<<<
+    else if(split_buffer.size())
+        print_error(local_client.get_fd(),ERR_UNKNOWNCOMMAND(split_buffer[0]) );
     
-//     char buffer[1024];
-//     puts(this->_password.c_str());
-//     size_t i =0;
-    
-//     while(1)
-//     {
-//         int client_fd;
-//         if (poll(fds.data(), fds.size(), -1) < 0)
-//             throw(std::runtime_error("poll_error : " + std::string(strerror(errno))));
-//         for (i = 0; i < fds.size(); i++)
-//         {
-//             if (this->fds[i].revents & POLLIN)
-//             {
-//                 std::string welcome_str = "please enter the password \n";
-//                 sockaddr client_addr;
-//                 socklen_t client_len = sizeof(client_addr);
-//                 if (this->fds[i].fd == this->_socket_fd)
-//                 {
-//                     client_fd = accept(this->_socket_fd, &client_addr, &client_len);
-//                     if (send(client_fd, welcome_str.c_str(), welcome_str.size(), 0) < 0)
-//                         throw(std::runtime_error("send_error : " + std::string(strerror(errno))));
-//                     this->fds.push_back((pollfd){client_fd, POLLIN, 0});
-//                     // std::find(this->clients.begin(), this->fds->end(), this->clients.firs)     <<<<<<<<<<<<<<<<<<<<<<<<<
-//                     this->clients.push_back((Client){client_fd, false, "", ""});
-//                 }
-//                 else
-//                 {
-//                     Client &local_client = this->clients[i];
-//                     // fcntl(local_client.fd, F_SETFL, O_NONBLOCK);
-//                     memset(buffer, 0, 1024);
-//                     if (recv(local_client.fd, &buffer, 1024, 0) < 0)
-//                         throw(std::runtime_error("recv_error : " + std::string(strerror(errno))));
-//                     if (!local_client.authenticated)
-//                     {
-//                         handle_new_client(local_client, buffer, i);
-//                     }
-//                     else //(*buffer)
-//                     {
-//                         std::string new_buffer(buffer);
-//                         if (new_buffer.empty())
-//                             return;
-//                         std::vector<std::string> split_buffer = split(new_buffer, ' ', false);
-//                         if (split_buffer.size() && split_buffer[0] == "join")
-//                             join(&local_client, split_buffer);
-//                         else if (split_buffer.size() && split_buffer[0] == "topic")
-//                             topic(&local_client, buffer);
-//                         else if(split_buffer.size())
-//                             print_error(local_client.fd,ERR_UNKNOWNCOMMAND(split_buffer[0]) );
-
-//                         //  handle_message(local_client, buffer, i);
-//                     }
-//                 }
-//             }
-//         }
-
-//     }
-
-// }
-//////////////channel
-Channel* Server::getchannel(const std::string &name_channel)
-{
-    for(size_t i = 0; i < channels.size(); i++)
-    {
-        if (!name_channel.empty() && name_channel == channels[i].getName_channel())
-            return &channels[i];
-    }
-    return NULL;
 }
 
-
-int Server::addchannel(Client _client, const std::string &name_channel)
+void Server::kick(Client &client, std::vector<std::string> table)
 {
-
-    std::cout<<"------------------>"<< name_channel<<std::endl;
-    if (name_channel[0] == '#' && name_channel[1] != '\0')
-        channels.push_back(Channel(name_channel));
-    else
-    {
-        std::string msg = ERR_NOSUCHCHANNEL(name_channel);
-        send(_client.fd, msg.c_str(), msg.length(), 0);
-        return (1);
-    }
-    return 0;
-}
-
-std::vector<std::pair<std::string, std::string> > pars_join(std::vector<std::string> &cmd)
-{
-    std::vector<std::pair<std::string, std::string> > last_cmd;
-    std::vector<std::string> keys;
-    std::vector<std::string> channels;
-    std::string password;
-    if (cmd.size() > 2){keys = split(cmd[2], ',', true);}
-    
-    channels = split(cmd[1], ',', true);
-    std::cout << "----------------------------------\n";
-
-    for (size_t i = 0; i < channels.size(); i++)
-    {
-        std::cout << channels[i] << std::endl;
-    }
-    std::cout << "----------------------------------\n";
-    for(size_t j = 0; j < channels.size(); j++)
-    {
-        password = "";
-        if (keys.size() > j)
-            password = keys[j];
-        last_cmd.push_back(std::make_pair(channels[j], password));
-    }
-    for (size_t i = 0; last_cmd.size() > i; i++)
-        std::cout << last_cmd[i].first << "  ==  " << last_cmd[i].second << std::endl;
-    return last_cmd;
-
-}
-
-void Server::join(Client client, std::vector<std::string> &cmd)
-{
-    if(cmd.size()<2)
-    {
-        print_error(client.fd, ERR_NEEDMOREPARAMS(client.username));
-        return;
-    }
-    std::vector<std::pair<std::string, std::string> > ch_pass = pars_join(cmd) ;
+    // Ensure the command has the correct number of arguments
     std::string msg;
-    for (size_t i = 0; i < ch_pass.size(); i++)
+    if (table.size() != 3 && table.size() != 4) // KICK <channel> <user> [reason]
     {
-        Channel *ch = getchannel(ch_pass[i].first);
-        if (ch && (ch->is_client(client) || ch->check_operator(client)))
-        {
-            print_error(client.fd, ERR_USERONCHANNEL(ch->getName_channel(), client.nickname));
-            continue;
-        }
-        if(!ch)
-        {
-            
-            if (addchannel(client, ch_pass[i].first) == 0)
-            {
-                ch = getchannel(ch_pass[i].first);
-                ch->addoperator(client);
-                if (ch_pass[i].second.empty())//TODO hada tah ghir tmp bach n testi bih
-                {
-                    ch->setPassword(ch_pass[i].second);
-                    ch->setFlag_k(true);
-                }
-                // ch->setFlag_l(true);
-                // ch->setLimit(2);
-            }
-        }
+        msg = "KICK";
+        print_error(client.get_fd(), ERR_NEEDMOREPARAMS(msg));
+        return;
+    }
+    std::string channel_name = table[1];
+    std::string target_nickname = table[2];
+    std::string reason = (table.size() > 3) ? table[3] : "No reason provided";
+    // Check if the channel exists
+    Channel* channel = getchannel(channel_name);
+    if (!channel)
+    {
+        msg = channel_name;
+        print_error(client.get_fd(), ERR_NOSUCHCHANNEL(channel_name));
+        return;
+    }
+    // Check if the target user exists
+    Client* target_client = getClientByNick(target_nickname);
+    if (!target_client)
+    {
+        msg = target_nickname;
+        print_error(client.get_fd(), ERR_NOSUCHNICK(msg));
+        return;
+    }
+    // Check if the target user is in the channel
+    // if (!(channel->is_client(*(target_client))))
+    // {
 
-        if (ch)
-        {
-            if (ch->getFlag_l() && (ch->getLimit() == (ch->getOperators().size() + ch->getClients().size())))
-            {
-                print_error(client.fd, ERR_CHANNELISFULL(client.nickname ,ch->getName_channel()));
-                    continue;
-            }
-            if (ch->getFlag_k()  && ch->getPassword() != ch_pass[i].second)
-            {
-                print_error(client.fd, ERR_BADCHANNELKEY(ch->getName_channel()));
-                continue;
-            }
-            if(!ch->is_client(client) )
-            {
-                if (!ch->check_operator(client))
-                    ch->addclient(client);
+    //     msg = target_nickname;
+    //     print_error(client.get_fd(), ERR_NOTONCHANNEL(channel->getName_channel(), target_client->get_nickname()));
+    //     return;
+    // }
+    // Check if the client issuing the command has operator privileges
+    if (!channel->is_operator(client))
+    {
+        print_error(client.get_fd(), ERR_CHANOPRIVSNEEDED(channel_name));
+        return;
+    }
 
-                ch->send_msg_in_channel(RPL_JOIN(client.nickname,ch->getName_channel()));
-                print_error(client.fd, RPL_NAMREPLY(client.nickname, ch->getName_channel(), ch->list_of_client()));
-                print_error(client.fd, RPL_ENDOFNAMES(client.nickname, ch->getName_channel()));
-
-            }
-
-        
-        }
+    // Remove the target user from the channel
+    channel->remove_client(target_client->get_nickname());
+    channel->send_msg_in_channel(RPL_KICK(client.get_nickname(), target_client->get_nickname(), channel->getName_channel(), reason));
+    if (channel->getOperators().empty() && channel->getClients().size())
+    {
+        channel->getOperators().push_back(channel->getClients()[0]);
+        channel->getClients().erase(channel->getClients().begin());
+        channel->send_msg_in_channel(RPL_UMODEIS(client.get_nickname(), channel->getName_channel(), "+o",channel->getOperators()[0].get_nickname()));
     }
 }
 
-
-
-
-///////////////////////////////////////////////////////////////////////////
-
-void Server::print_error(int fd, std::string msg)
+int Server::check_nickname(std::string name)
 {
-    if (send(fd, msg.c_str(), msg.length(), 0) == -1)
-        std::cout << "msg not send "<< std::endl;
-}
-
-
-//TODO KHASNI NZID ILA CHANNEL KHAS GHIR ADMIN LI BDEL TOPIC
-void Server::topic(Client client,  std::string cmd)
-{
-    std::vector<std::string> new_cmd = split(cmd, ' ',false);
-    if(new_cmd.size() < 2)
+    for (size_t i= 0 ;i < this->clients.size(); i++)
     {
-        print_error(client.fd, ERR_NEEDMOREPARAMS(client.nickname));
-
-        return;
-    }
- 
-    Channel *ch = getchannel(new_cmd[1]);
-    if (!ch)
-    {
-        print_error(client.fd, ERR_NOSUCHCHANNEL(new_cmd[1]));
-        return;
-    }
-    if (!ch->is_client(client) ) //TODO && check is operator
-    {
-        print_error(client.fd, ERR_NOTONCHANNEL(client.nickname, new_cmd[1]));
-        return;
-    }
-    if (new_cmd.size() == 2)
-    {
-        if (ch->getTopic().empty())
+        if (clients[i].get_nickname() == name)
         {
-            print_error(client.fd, RPL_NOTOPIC(client.nickname, new_cmd[1]));
-            return;
+            return (0);
         }
-        else 
-        {
-            print_error(client.fd, RPL_TOPIC(client.nickname, new_cmd[1], ch->getTopic()));
-            std::cout << ch->getTopic();
-            return;
-        }
-    } 
-    if (new_cmd.size() > 2)
-    {
-        std::string ii = cmd;
-        size_t index = ii.find(new_cmd[1]) + new_cmd[1].length();
-        while(cmd[index] == ' ') index++;
-        if (cmd[index] != ':')
-            ch->setTopic(new_cmd[2] + POSTFIX);
-        else if (cmd[index] == ':')
-        {
-            index++;
-            ch->setTopic(&cmd[index]);
-        }
-        ii = ch->getTopic();
-        ch->send_msg_in_channel(ii);
-
     }
-}
+    return (1);
+} 
