@@ -1,3 +1,4 @@
+
 #ifndef INCLUDES_H
 #define INCLUDES_H
 
@@ -37,7 +38,7 @@
 #define RPL_NOTOPIC(sender, channel)PREFIX " 331 " + sender + " " + channel + " :No topic is set" + POSTFIX
 #define RPL_TOPIC(sender, channel, topic)PREFIX " 332 " + sender + " " + channel + " :" + topic + POSTFIX
 #define RPL_QUIT(sender, reason) ":" + sender + " QUIT :Quit:" + reason + POSTFIX
-#define RPL_UMODEIS(hostname, channelname, mode, user)"::" + hostname + " MODE " + channelname + " " + mode + " " + user + POSTFIX
+#define RPL_UMODEIS(hostname, channelname, mode, user)":" + hostname + " MODE " + channelname + " " + mode + " " + user + POSTFIX
 #define RPL_PRIVMSG(sender, username, ip, target, msg) ":" + sender + "!" + username + "@" + ip + " PRIVMSG " + target
 ///////////////
 #define RPL_WELCOME(nick, hostname)  std::string("\r\n:") + std::string(hostname) + std::string(" 001 ") + std::string(nick) + std::string(" :Welcome to the Internet Relay Chat Network ") + std::string(nick) + "!~" + std::string(nick) + "@" + std::string(hostname) + "\r\n"
@@ -48,6 +49,8 @@
 #define ERR_PASSWDMISMATCH(target)    PREFIX " 464 " + target + " :Password incorrect" POSTFIX //password incorroct 
 #define ERR_PASSWDINFIRST(target)    PREFIX " 464 " + target + " :Password required before other commands" POSTFIX //password incorroct 
 #define ERR_NONICKNAMEGIVEN(target) PREFIX "431 " + target + " :No nickname given" POSTFIX
+#define ERR_NOSUCHNICK(nickname)    PREFIX " 401 " + nickname + " :No such nick/channel" POSTFIX
+#define RPL_KICK(kikker, target, channel, reason)    ":" +  kikker +" KICK " + channel + " " + target + " :" + reason + POSTFIX
 
 class Server;
 
@@ -72,4 +75,3 @@ void to_upper(std::string &str);
 
 
 #endif
-

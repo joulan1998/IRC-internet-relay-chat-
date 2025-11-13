@@ -1,3 +1,4 @@
+
 #ifndef CHANNEL_HPP
 #define CHANNEL_HPP
 #include "includes.hpp"
@@ -57,6 +58,9 @@ class Channel
         bool is_client(Client &_client);
         bool is_invited(Client &_client);
         void send_msg_in_channel(std::string msg);
+        void remove_client(std::string nickname);
+        // void remove_client(Client client);
+        // void remove_client(const std::string& nickname);
 
         std::string list_of_client();
 

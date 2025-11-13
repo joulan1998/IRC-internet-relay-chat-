@@ -1,5 +1,3 @@
-#include  "../includes/server.hpp"
-#include  "../includes/channel.hpp"
 #include "../includes/includes.hpp"
 
 Server* Server::instance = NULL;
@@ -18,6 +16,29 @@ void test_fun(int sig)
     delete(reff->_socket_addr);
     return;
 }
+void Channel::remove_client(std::string nickname)
+{
+    if (!nickname.empty())
+    {
+        for (size_t i = 0; i < this->clients.size(); i++)
+        {
+            if (this->clients[i].get_nickname() == nickname)
+            {
+                this->clients.erase(this->clients.begin() + i);
+                return; // Exit after removing the client
+            }
+        }
+        for (size_t i = 0; i < this->getOperators().size(); i++)
+        {
+            if (this->op[i].get_nickname() == nickname)
+            {
+                this->op.erase(this->op.begin() + i);
+                return; // Exit after removing the client
+            }
+        }
+    }
+}
+
 void Server::handle_nickname(Client &local_client, std::vector<std::string> table)
 {
     if (!local_client.get_nickname().empty())
@@ -359,21 +380,66 @@ void Server::pars_cmd(std::string buffer, Client &local_client)
     //     invite(local_client, buffer);
     else if (split_buffer.size() && split_buffer[0] == "QUIT")
         quit(local_client, buffer);
+    else if (split_buffer.size() && split_buffer[0] == "KICK")
+        kick(local_client , split_buffer);                                          //<<<<<<<<<<<
     else if(split_buffer.size())
         print_error(local_client.get_fd(),ERR_UNKNOWNCOMMAND(split_buffer[0]) );
     
 }
-// void Server::invite(Client &client, std::string &cmd)
-// {
-//     (void)client;
-//     std::vector<std::string> new_cmd = split(cmd, ' ', false);
-//     Channel* ch = getchannel(new_cmd[2]);
-//     Client *target = getClientByNick(new_cmd[1]);
+void Server::kick(Client &client, std::vector<std::string> table)
+{
+    // Ensure the command has the correct number of arguments
+    std::string msg;
+    if (table.size() != 3 && table.size() != 4) // KICK <channel> <user> [reason]
+    {
+        msg = "KICK";
+        print_error(client.get_fd(), ERR_NEEDMOREPARAMS(msg));
+        return;
+    }
+    std::string channel_name = table[1];
+    std::string target_nickname = table[2];
+    std::string reason = (table.size() > 3) ? table[3] : "No reason provided";
+    // Check if the channel exists
+    Channel* channel = getchannel(channel_name);
+    if (!channel)
+    {
+        msg = channel_name;
+        print_error(client.get_fd(), ERR_NOSUCHCHANNEL(channel_name));
+        return;
+    }
+    // Check if the target user exists
+    Client* target_client = getClientByNick(target_nickname);
+    if (!target_client)
+    {
+        msg = target_nickname;
+        print_error(client.get_fd(), ERR_NOSUCHNICK(msg));
+        return;
+    }
+    // Check if the target user is in the channel
+    // if (!(channel->is_client(*(target_client))))
+    // {
 
-//     ch->add_invited(*target);
-//     for(size_t i = 0; i< new_cmd.size(); i++)
-//         std::cout<< new_cmd[i]<< std::endl;
-// }
+    //     msg = target_nickname;
+    //     print_error(client.get_fd(), ERR_NOTONCHANNEL(channel->getName_channel(), target_client->get_nickname()));
+    //     return;
+    // }
+    // Check if the client issuing the command has operator privileges
+    if (!channel->is_operator(client))
+    {
+        print_error(client.get_fd(), ERR_CHANOPRIVSNEEDED(channel_name));
+        return;
+    }
+
+    // Remove the target user from the channel
+    channel->remove_client(target_client->get_nickname());
+    channel->send_msg_in_channel(RPL_KICK(client.get_nickname(), target_client->get_nickname(), channel->getName_channel(), reason));
+    if (channel->getOperators().empty() && channel->getClients().size())
+    {
+        channel->getOperators().push_back(channel->getClients()[0]);
+        channel->getClients().erase(channel->getClients().begin());
+        channel->send_msg_in_channel(RPL_UMODEIS(client.get_nickname(), channel->getName_channel(), "+o",channel->getOperators()[0].get_nickname()));
+    }
+}
 
 int Server::check_nickname(std::string name)
 {
@@ -385,4 +451,4 @@ int Server::check_nickname(std::string name)
         }
     }
     return (1);
-}
+} 

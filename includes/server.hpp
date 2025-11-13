@@ -77,6 +77,7 @@ class Server
         void invite(Client &client, std::string &cmd);
     // ************************************************************
         int check_nickname(std::string name);
+        void kick(Client &client, std::vector<std::string> table);
         
 };
 std::vector<std::pair<std::string, std::string> > pars_join(std::vector<std::string> &cmd);
