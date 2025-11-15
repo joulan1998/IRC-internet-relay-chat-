@@ -84,7 +84,7 @@ void Channel::addclient(Client &_client)
 
 bool Channel::is_operator(Client &_client)
 {
-     for (size_t i = 0; i < op.size(); i++)
+    for (size_t i = 0; i < op.size(); i++)
     {
         // if (op[i].fd == _client.fd)
         if (op[i].get_fd() == _client.get_fd())

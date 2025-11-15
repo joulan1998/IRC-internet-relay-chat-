@@ -1,6 +1,9 @@
 #include "../includes/includes.hpp"
 
-
+int Server::get_socket_fd()
+{
+    return(this->_socket_fd);
+}
 
 Channel* Server::getchannel(const std::string &name_channel)
 {
