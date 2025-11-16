@@ -59,14 +59,9 @@ class Channel
         bool is_invited(Client &_client);
         void send_msg_in_channel(std::string msg);
         void remove_client(std::string nickname);
-        // void remove_client(Client client);
-        // void remove_client(const std::string& nickname);
-
         std::string list_of_client();
-
         std::vector<Client > &getOperators();
         std::vector<Client > &getClients();
-
           // frenzy commands:
         void removeOperator(Client &_client);
 };

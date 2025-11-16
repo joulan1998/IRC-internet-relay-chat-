@@ -39,7 +39,11 @@
 #define RPL_TOPIC(sender, channel, topic)PREFIX " 332 " + sender + " " + channel + " :" + topic + POSTFIX
 #define RPL_QUIT(sender, reason) ":" + sender + " QUIT :Quit:" + reason + POSTFIX
 #define RPL_UMODEIS(hostname, channelname, mode, user)":" + hostname + " MODE " + channelname + " " + mode + " " + user + POSTFIX
-#define RPL_PRIVMSG(sender, username, ip, target, msg) ":" + sender + "!" + username + "@" + ip + " PRIVMSG " + target
+#define ERR_NOTREGISTERED() PREFIX " 451 :You have not registered" POSTFIX
+#define ERR_NORECIPIENT(command, sender) PREFIX + sender + " 411 :No recipient given " command POSTFIX
+#define ERR_NOTEXTTOSEND() PREFIX " 412 :No text to send" POSTFIX
+#define ERR_CANNOTSENDTOCHAN(channel) PREFIX  " 404"+ channel + ":Cannot send to channel" POSTFIX
+#define RPL_PRIVMSG(client, target, msg)  ":" + (client).get_nickname() + "!" + (client).get_username() + "@" + (client).get_host() + " PRIVMSG " + (target) + " :" + (msg) + POSTFIX
 ///////////////
 #define RPL_WELCOME(nick, hostname)  std::string("\r\n:") + std::string(hostname) + std::string(" 001 ") + std::string(nick) + std::string(" :Welcome to the Internet Relay Chat Network ") + std::string(nick) + "!~" + std::string(nick) + "@" + std::string(hostname) + "\r\n"
 #define RPL_YOURHOST(nick, hostname) std::string(":") + std::string(hostname) + std::string(" 002 ") + std::string(nick) + std::string(" :Your host is ") + std::string(hostname) + std::string(", running version 1.0\r\n")

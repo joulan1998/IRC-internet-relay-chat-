@@ -16,7 +16,6 @@ class Client
         std::string realname;
         std::string host;
     public:
-        // Client( int fd ,bool registred, bool authenticated, std::string nickname, std::string username, std::string hostname, std::string servername, std::string realname);
         Client( int fd );
         void set_fd(int value);
         int get_fd(void);
