@@ -35,7 +35,6 @@ void Server::topic(Client &client,  std::string &cmd)
     }
     if (new_cmd.size() > 2)
     {
-            //new
         if (ch->getFlag_t() && !(ch->is_operator(client)))
         {
             print_error(client.get_fd(), ERR_CHANOPRIVSNEEDED(new_cmd[1]));

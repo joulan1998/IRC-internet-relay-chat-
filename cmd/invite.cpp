@@ -19,7 +19,7 @@ void Server::invite(Client &client, std::string &cmd)
         print_error(client.get_fd(), ERR_NOTONCHANNEL(client.get_nickname(), new_cmd[2]));
         return;
     }
-    if (!check_nickname(new_cmd[1]))
+    if (check_nickname(new_cmd[1]))
     {
         print_error(client.get_fd(), ERR_NOSUCHNICK(new_cmd[1]));
         return;
