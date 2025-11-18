@@ -11,13 +11,10 @@ void Server::quit_handler(std::vector<Client> &new_cl, Client &client, std::vect
         {
             std::vector<Client>::iterator tmp = it;
             tmp ++;
-            it = new_cl.erase(it); // erase returns new iterator
+            it = new_cl.erase(it); 
             if (it != new_cl.end())
                 it  = tmp;
-            (void)i;
-            (void)cmd;
             size_t index = cmd.find(new_cmd[0]) + new_cmd[0].length();
-            // //check for find
             while(cmd[index] == ' ') index++;           
             if (cmd[index] != ':')
             {
@@ -30,7 +27,7 @@ void Server::quit_handler(std::vector<Client> &new_cl, Client &client, std::vect
             else if (cmd[index] == ':')
             {
                 index++;
-                reasen = &cmd[index];
+                reasen = &cmd[index]; 
             }
             channels[i].send_msg_in_channel(RPL_QUIT((client.get_nickname() + "!" + client.get_username() + "@" + client.get_host()), reasen));
         }
@@ -39,13 +36,25 @@ void Server::quit_handler(std::vector<Client> &new_cl, Client &client, std::vect
     }
 }
 
+void Server::remove_client_in_server(Client &client)
+{
+    for (size_t i = 0; i < this->clients.size(); i++)
+    {
+        if (this->clients[i].get_fd() == client.get_fd())
+        {
+            this->clients.erase(this->clients.begin() + i);
+            this->fds.erase(this->fds.begin() + i);
+            break;
+        }
+    }
+}
+
 void Server::quit(Client &client, std::string &cmd)
 {
     std::vector<std::string> new_cmd = split(cmd, ' ', false);
     
-    for (size_t i = 0; i < channels.size(); ++i)
+    for (size_t i = 0; i < channels.size(); i++)
     {
-        std::cout<<"\n channel number -> " << i << "\n\n";
         std::vector<Client> &ch_op = this->channels[i].getOperators();
         std::vector<Client> &cl = this->channels[i].getClients();
         quit_handler(ch_op, client,new_cmd,i,cmd);
@@ -58,6 +67,15 @@ void Server::quit(Client &client, std::string &cmd)
             channels[i].send_msg_in_channel(RPL_UMODEIS(client.get_nickname(), this->channels[i].getName_channel(), "+o",ch_op[0].get_nickname()));
         }
     }
-    close(client.get_fd());
-    
+    close(client.get_fd()); 
+    remove_client_in_server(client);
+
+    for(size_t i = 0; i < channels.size(); i++)
+    {
+        if (channels[i].getClients().empty()  && channels[i].getOperators().empty())
+        {
+            this->channels.erase(this->channels.begin() + i);
+            i--;
+        }
+    }
 }

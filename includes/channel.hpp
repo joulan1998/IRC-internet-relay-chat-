@@ -29,6 +29,7 @@ class Channel
         Channel(const std::string &name);
         void setLimit(size_t l);
         size_t getLimit();
+        std::vector<Client > &getInviteds();
         
         void setFlag_k(bool set_k);
         bool getFlag_k();

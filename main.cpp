@@ -4,7 +4,7 @@ Server *ref;
 
 void f()
 {
-    system("leaks ircserv");
+    system("lsof -c ircserv");
 }
 
 int main(int argc, char  **argv)

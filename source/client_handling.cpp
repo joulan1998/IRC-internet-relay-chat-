@@ -77,7 +77,7 @@ void Server::handle_username(Client &local_client, std::vector<std::string> tabl
     }
 }
 
-void Server::handle_password(Client &local_client, std::string value/*,size_t index*/)
+void Server::handle_password(Client &local_client, std::string value)
 {
     if(value.empty())
     {

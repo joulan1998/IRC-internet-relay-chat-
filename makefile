@@ -1,28 +1,42 @@
 NAME = ircserv
 
-SRC = main.cpp source/client_handling.cpp  source/kick.cpp source/channel.cpp source/server.cpp utils/irc_utils.cpp source/client.cpp cmd/topic.cpp cmd/join.cpp cmd/mode.cpp cmd/privmsg.cpp cmd/quit.cpp
+BNS_NAME = bot_weather
+
+SRC = main.cpp source/ctrl_c_handling.cpp cmd/invite.cpp source/client_handling.cpp  source/kick.cpp source/channel.cpp source/server.cpp utils/irc_utils.cpp source/client.cpp cmd/topic.cpp cmd/join.cpp cmd/mode.cpp cmd/privmsg.cpp cmd/quit.cpp
+
+BNS = bonus/bonus.cpp
 
 INC = includes/includes.hpp includes/server.hpp includes/client.hpp includes/channel.hpp
 
 OBJ = $(SRC:.cpp=.o)
 
+OBJ_BNS = $(BNS:.cpp=.o)
+
 CXX = c++
 
-CXXFLAGS = -Wall -Wextra -Werror -fsanitize=address -std=c++98 -g
+CXXFLAGS = -Wall -Wextra -Werror -std=c++98 #-g -fsanitize=address
 
+	
 all: $(NAME)
 
 $(NAME): $(OBJ) $(INC)
 	$(CXX) $(CXXFLAGS)  $(OBJ) -o $(NAME) 
 
+
+bonus: $(BNS_NAME)
+
+
+$(BNS_NAME) : $(OBJ_BNS) #$(INC)
+	$(CXX) $(CXXFLAGS)  $(OBJ_BNS) -o $(BNS_NAME) 
+
 %.o: %.cpp $(INC)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(OBJ)
+	rm -f $(OBJ) $(OBJ_BNS)
 
 fclean: clean
-	rm -f $(NAME)
+	rm -f $(NAME) $(BNS_NAME)
 
 re: fclean all
 

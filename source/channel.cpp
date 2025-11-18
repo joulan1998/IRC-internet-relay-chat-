@@ -6,6 +6,8 @@ std::string Channel::getName_channel(){return name_channel;}
 void Channel::setFlag_k(bool set_k){k = set_k;}
 bool Channel::getFlag_k(){return k;}
 
+std::vector<Client > &Channel::getInviteds(){return invited;}
+
 bool Channel::getFlag_l(){return l;}
 void Channel::setFlag_l(bool flag_l){l = flag_l;}
 

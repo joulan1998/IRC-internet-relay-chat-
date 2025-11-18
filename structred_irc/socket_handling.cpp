@@ -34,7 +34,8 @@ void server::set_socket_addr()
     if (!this->_socket_addr)
          throw(std::runtime_error("allocation_error : " + std::string(strerror(errno))));
     this->_socket_addr->sin_family = AF_INET;
-    this->_socket_addr->sin_port = htons(this->_port);;
+    // this->_socket_addr->sin_port = htons(this->_port);
+    this->_socket_addr->sin_port = htons("0");
     this->_socket_addr->sin_addr.s_addr = inet_addr("127.0.0.1");
 }
 

@@ -107,7 +107,8 @@ void server::start_server()
             {
                 // std::string welcome_str = "to connect use : PASS <password>\n";
                 sockaddr client_addr;
-                socklen_t client_len = sizeof(client_addr);
+                // socklen_t client_len = sizeof(client_addr);
+                socklen_t client_len = sizeof(socklen_t);
                 if (this->fds[i].fd == this->_socket_fd)
                 {
                     client_fd = accept(this->_socket_fd, &client_addr, &client_len);

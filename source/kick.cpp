@@ -27,13 +27,9 @@ void Server::kick(Client &client, std::vector<std::string> table , std::string b
     if (table.size() > 3)
     {
         if (table[3][0] == ':' && table.size() > 4)
-        {
             reason = std::string(buffer, buffer.find(':') + 1 , buffer.size() - buffer.find(':'));
-            std::cout << "size > 3" << std::endl;
-        }
         else
             reason = std::string(table[3]);
-
     }
     Channel* channel = getchannel(channel_name);
     if (!channel)
