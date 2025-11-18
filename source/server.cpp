@@ -149,13 +149,7 @@ Server::Server(std::string port, std::string password)
 }
 
 
-// void Server::set_listen()
-// {
-//     if (listen(this->_socket_fd, MAX_CLIENT) < 0)
-//     {
-//         throw(std::runtime_error("listen_error : " + std::string(strerror(errno))));
-//     }
-// }
+
 void Server::set_listen()
 {
     if (this->_socket_fd < 0)
@@ -164,7 +158,6 @@ void Server::set_listen()
     if (listen(this->_socket_fd, MAX_CLIENT) < 0)
         throw(std::runtime_error("listen_error: " + std::string(strerror(errno))));
 
-    std::cout << "Server listening on port " << this->_port << "..." << std::endl;
 }
 void Server::bind_server()
 {
@@ -378,9 +371,6 @@ int Server::check_nickname(std::string name)
     }
     return (0);
 }
-
-
-
 
 void Server::invite(Client &client, std::string &cmd)
 {

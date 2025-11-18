@@ -1,5 +1,10 @@
 #include "../includes/includes.hpp"
 
+int Server::get_socket_fd()
+{
+    return(this->_socket_fd);
+}
+
 Channel* Server::getchannel(const std::string &name_channel)
 {
     for(size_t i = 0; i < channels.size(); i++)
@@ -15,7 +20,10 @@ int Server::addchannel(Client _client, const std::string &name_channel)
     if (name_channel[0] == '#' && name_channel[1] != '\0')
         channels.push_back(Channel(name_channel));
     else
-        return (print_error(_client.get_fd(), ERR_NOSUCHCHANNEL(name_channel)), 1);
+    {
+        print_error(_client.get_fd(), ERR_NOSUCHCHANNEL(name_channel));
+        return (1);
+    }
     return 0;
 }
 
@@ -31,7 +39,6 @@ std::vector<std::pair<std::string, std::string> > pars_join(std::vector<std::str
     std::vector<std::string> keys;
     std::vector<std::string> channels;
     std::string password;
-    //check if have keys :"join #ch,#ch1 key,key1"
     if (cmd.size() > 2){keys = split(cmd[2], ',', true);}
     
     channels = split(cmd[1], ',', true);
@@ -54,7 +61,7 @@ void Server::join(Client &client, std::vector<std::string> &cmd)
         return;
     }
     std::vector<std::pair<std::string, std::string> > ch_pass = pars_join(cmd) ;
-
+    std::string msg;
     for (size_t i = 0; i < ch_pass.size(); i++)
     {
         Channel *ch = getchannel(ch_pass[i].first);
@@ -80,9 +87,10 @@ void Server::join(Client &client, std::vector<std::string> &cmd)
         {
             if (ch->getFlag_i() && (ch->is_invited(client) == false))
             {
+                std::cout << "Falg i  ===>  "<< ch->getFlag_i()<< std::endl;
                 print_error(client.get_fd(), ERR_INVITEONLYCHAN(client.get_nickname(), ch->getName_channel()));
                 continue;
-            }      
+            }
             if (ch->getFlag_l() && (ch->getLimit() == (ch->getOperators().size() + ch->getClients().size())))
             {
                 print_error(client.get_fd(), ERR_CHANNELISFULL(client.get_nickname() ,ch->getName_channel()));
@@ -97,25 +105,20 @@ void Server::join(Client &client, std::vector<std::string> &cmd)
             {
                 if (!ch->is_operator(client))
                     ch->addclient(client);
-                if (ch->is_invited(client))
-                {
-                    ch->addclient(client);
-                    std::vector<Client>::iterator it = ch->getInviteds().begin();
-                    std::vector<Client>::iterator tmp = it;
-                    tmp ++;
-                    it = ch->getInviteds().erase(it); 
-                    if (it != ch->getInviteds().end())
-                        it  = tmp;
-                }
                 ch->send_msg_in_channel(RPL_JOIN((client.get_nickname() + "!" + client.get_username() + "@" + client.get_host()),ch->getName_channel()));
                 print_error(client.get_fd(), RPL_NAMREPLY(client.get_nickname(), ch->getName_channel(), ch->list_of_client()));
                 print_error(client.get_fd(), RPL_ENDOFNAMES(client.get_nickname(), ch->getName_channel()));
                 if (!ch->is_operator(client))
                 {
                     if (ch->getTopic().empty())
+                    {
                        print_error(client.get_fd(), RPL_NOTOPIC(client.get_nickname(), ch->getName_channel()));
+                    }
                     else
+                    {
                        print_error(client.get_fd(), RPL_TOPIC(client.get_nickname(), ch->getName_channel(), ch->getTopic()));
+                       std::cout << ch->getTopic();
+                    }
                 }
             }
         }

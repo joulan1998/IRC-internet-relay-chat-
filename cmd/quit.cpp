@@ -74,8 +74,10 @@ void Server::quit(Client &client, std::string &cmd)
     {
         if (channels[i].getClients().empty()  && channels[i].getOperators().empty())
         {
+            if (channels[i].getInviteds().empty())
             this->channels.erase(this->channels.begin() + i);
             i--;
         }
     }
 }
+

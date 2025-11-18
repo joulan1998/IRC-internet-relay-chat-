@@ -26,8 +26,6 @@ class Server
         std::vector<Channel> get_channels();
         static Server& get_this();
         static Server* instance;
-        // bool 
-        // std::vector<Channel> channels;
         int  _port;
         int  _socket_fd;
         std::string _password;
@@ -78,8 +76,9 @@ class Server
         void invite(Client &client, std::string &cmd);
         int check_nickname(std::string name);
         void kick(Client &client, std::vector<std::string> &table , std::string &buffer);
-        void clean_channels(Channel &channel);
+        void clean_  channels(Channel &channel);
         void remove_client_in_server(Client &client);
+        int get_socket_fd();
 
         // void remove_empty_channel(Client &client);
 
