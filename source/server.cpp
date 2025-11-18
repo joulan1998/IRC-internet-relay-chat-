@@ -379,39 +379,9 @@ int Server::check_nickname(std::string name)
     return (0);
 }
 
-void Server::clean_channels(Channel &channel)
-{
-    for (size_t i = 0; i < this->channels.size(); i++)
-    {
-        if (this->channels[i].getName_channel() == channel.getName_channel())
-        {
-            this->channels.erase(this->channels.begin() + i);
-            break;
-        }
-    }
-}
-void Server::remove_client_in_server(Client &client)
-{
-    
-    for (size_t i = 0; i < this->clients.size(); i++)
-    {
-        if (this->clients[i].get_fd() == client.get_fd())
-        {
-            this->clients.erase(this->clients.begin() + i);
-            this->fds.erase(this->fds.begin() + i);
-            break;
-        }
-    }
-    // for (size_t i = 0; i < this->fds.size(); i++)
-    // {
-    //     if (this->fds[i].fd == client.get_fd())
-    //     {
-    //         this->fds.erase(this->fds.begin() + i);
-    //         break;
-    //     }
-    // }
-    // close
-}
+
+
+
 void Server::invite(Client &client, std::string &cmd)
 {
     std::vector<std::string> new_cmd = split(cmd, ' ', false);

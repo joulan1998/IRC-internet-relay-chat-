@@ -11,13 +11,10 @@ void Server::quit_handler(std::vector<Client> &new_cl, Client &client, std::vect
         {
             std::vector<Client>::iterator tmp = it;
             tmp ++;
-            it = new_cl.erase(it); // erase returns new iterator
+            it = new_cl.erase(it); 
             if (it != new_cl.end())
                 it  = tmp;
-            (void)i;
-            (void)cmd;
             size_t index = cmd.find(new_cmd[0]) + new_cmd[0].length();
-            // //check for find
             while(cmd[index] == ' ') index++;           
             if (cmd[index] != ':')
             {
@@ -36,6 +33,19 @@ void Server::quit_handler(std::vector<Client> &new_cl, Client &client, std::vect
         }
         else
             ++it;
+    }
+}
+
+void Server::remove_client_in_server(Client &client)
+{
+    for (size_t i = 0; i < this->clients.size(); i++)
+    {
+        if (this->clients[i].get_fd() == client.get_fd())
+        {
+            this->clients.erase(this->clients.begin() + i);
+            this->fds.erase(this->fds.begin() + i);
+            break;
+        }
     }
 }
 
@@ -59,24 +69,13 @@ void Server::quit(Client &client, std::string &cmd)
     }
     close(client.get_fd()); 
     remove_client_in_server(client);
-  //TODO MSEH CHANNEL LKHAWIN
 
-  
-    std::cout << "       size of chanel ===>>   "<<channels.size()<< std::endl<< std::endl;
     for(size_t i = 0; i < channels.size(); i++)
     {
         if (channels[i].getClients().empty()  && channels[i].getOperators().empty())
         {
-            std::cout << "channel   ==>  "<<channels[i].getName_channel()<< std::endl;
             this->channels.erase(this->channels.begin() + i);
             i--;
         }
-    }
-        std::cout << "       size of chanel ===>>   "<<channels.size()<< std::endl<< std::endl;
-    std::cout << "       -----------------------------     "<<std::endl<< std::endl;
-
-    for(size_t i = 0; i < channels.size(); i++)
-    {
-            std::cout << "channel   ==>  "<<channels[i].getName_channel()<< std::endl;
     }
 }

@@ -2,10 +2,8 @@
 
 void Server::kick(Client &client, std::vector<std::string> &table , std::string &buffer)
 {
-    // Ensure the command has the correct number of arguments
     std::string msg;
-    // if (table.size() != 3 && table.size() != 4)                                      // KICK <channel> <user> [reason]
-    if (table.size() < 3) // KICK <channel> <user> [reason]
+if (table.size() < 3)
     {
         msg = "KICK";
         print_error(client.get_fd(), ERR_NEEDMOREPARAMS(msg));
@@ -30,7 +28,7 @@ void Server::kick(Client &client, std::vector<std::string> &table , std::string 
         print_error(client.get_fd(), ERR_NOSUCHCHANNEL(channel_name));
         return;
     }
-       // Check if the target user exists
+    // Check if the target user exists
     Client* target_client = getClientByNick(target_nickname);
     if (!target_client)
     {
@@ -60,4 +58,16 @@ void Server::kick(Client &client, std::vector<std::string> &table , std::string 
     }
     else if (channel->getClients().empty() && channel->getOperators().empty())
         clean_channels(* channel);
+}
+
+void Server::clean_channels(Channel &channel)
+{
+    for (size_t i = 0; i < this->channels.size(); i++)
+    {
+        if (this->channels[i].getName_channel() == channel.getName_channel())
+        {
+            this->channels.erase(this->channels.begin() + i);
+            break;
+        }
+    }
 }
