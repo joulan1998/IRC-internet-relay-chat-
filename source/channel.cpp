@@ -121,13 +121,11 @@ void Channel::send_msg_in_channel(std::string msg)
 {
     for(size_t i = 0; i < op.size(); i++)
     {
-        // if(send(op[i].fd, msg.c_str(), msg.length(), 0) == -1)
         if(send(op[i].get_fd(), msg.c_str(), msg.length(), 0) == -1)
             std::cerr<< "msg not send"<<std::endl;
     }
     for(size_t i = 0; i < clients.size(); i++)
     {
-        // if(send(clients[i].fd, msg.c_str(), msg.length(), 0) == -1)
         if(send(clients[i].get_fd(), msg.c_str(), msg.length(), 0) == -1)
             std::cerr<< "msg not send"<<std::endl;
     }

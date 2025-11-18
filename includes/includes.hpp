@@ -37,7 +37,7 @@
 #define RPL_ENDOFNAMES(sender, channel)        PREFIX  " 366 " + sender + " " + channel + " :End of /NAMES list." POSTFIX
 #define RPL_NOTOPIC(sender, channel)PREFIX " 331 " + sender + " " + channel + " :No topic is set" + POSTFIX
 #define RPL_TOPIC(sender, channel, topic)PREFIX " 332 " + sender + " " + channel + " :" + topic + POSTFIX
-#define RPL_QUIT(sender, reason) ":" + sender + " QUIT :Quit:" + reason + POSTFIX
+#define RPL_QUIT(sender, reason) ":" + sender + " QUIT : " + reason + POSTFIX
 #define RPL_UMODEIS(hostname, channelname, mode, user)":" + hostname + " MODE " + channelname + " " + mode + " " + user + POSTFIX
 #define ERR_NOTREGISTERED() PREFIX " 451 :You have not registered" POSTFIX
 #define ERR_NORECIPIENT(command, sender) PREFIX + sender + " 411 :No recipient given " command POSTFIX

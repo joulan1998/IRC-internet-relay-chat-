@@ -14,20 +14,13 @@ void Server::quit_handler(std::vector<Client> &new_cl, Client &client, std::vect
             it = new_cl.erase(it); 
             if (it != new_cl.end())
                 it  = tmp;
-            size_t index = cmd.find(new_cmd[0]) + new_cmd[0].length();
-            while(cmd[index] == ' ') index++;           
-            if (cmd[index] != ':')
+
+            if (new_cmd.size() > 1)
             {
-                std::string str = "";
-                if (new_cmd.size() > 2)
-                    str = new_cmd[2];
-                reasen = str + POSTFIX;
-                
-            }
-            else if (cmd[index] == ':')
-            {
-                index++;
-                reasen = &cmd[index]; 
+                if (new_cmd[1][0] == ':' && new_cmd.size() > 2)
+                    reasen = std::string(cmd, cmd.find(':') + 1 , cmd.size() - cmd.find(':'));
+                else
+                    reasen = std::string(new_cmd[1]);
             }
             channels[i].send_msg_in_channel(RPL_QUIT((client.get_nickname() + "!" + client.get_username() + "@" + client.get_host()), reasen));
         }
@@ -57,9 +50,8 @@ void Server::quit(Client &client, std::string &cmd)
     {
         std::vector<Client> &ch_op = this->channels[i].getOperators();
         std::vector<Client> &cl = this->channels[i].getClients();
-        quit_handler(ch_op, client,new_cmd,i,cmd);
-        quit_handler(cl ,client,new_cmd,i,cmd);
-
+        quit_handler(ch_op, client,new_cmd,i,cmd);//for operators
+        quit_handler(cl ,client,new_cmd,i,cmd);//for clients
         if (ch_op.empty() && cl.size())
         {
             ch_op.push_back(cl[0]);
@@ -69,7 +61,6 @@ void Server::quit(Client &client, std::string &cmd)
     }
     close(client.get_fd()); 
     remove_client_in_server(client);
-
     for(size_t i = 0; i < channels.size(); i++)
     {
         if (channels[i].getClients().empty()  && channels[i].getOperators().empty())
