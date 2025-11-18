@@ -1,5 +1,6 @@
 #include "../includes/includes.hpp"
- void Server::ctr_c_handler(std::vector<Client> &new_cl, Client &client)
+
+void Server::ctr_c_handler(std::vector<Client> &new_cl, Client &client)
 {
     std::vector<Client>::iterator it = new_cl.begin();
 
