@@ -65,6 +65,7 @@ class Channel
         std::vector<Client > &getClients();
           // frenzy commands:
         void removeOperator(Client &_client);
+        void removeclient(Client &_client);
 };
 
 #endif

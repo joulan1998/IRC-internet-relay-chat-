@@ -59,7 +59,7 @@ void    Server::socket_options()
     int option = 1;
     if (setsockopt(this->_socket_fd, SOL_SOCKET, SO_REUSEADDR ,&option , sizeof(option)) < 0)
     {
-        perror("SET SOCKOPT ERROR : ");
+        std::perror("SET SOCKOPT ERROR : ");
         exit(1);
     }
 }
@@ -144,7 +144,7 @@ void Server::start_server()
                     std::string client_ip(ip_str);
                     local_client.set_host(client_ip);
                     fcntl(local_client.get_fd(), F_SETFL, O_NONBLOCK);
-                    memset(buffer, 0,1024);
+                    std::memset(buffer, 0,1024);
                     bytes_readen = recv(local_client.get_fd(), buffer,1024, 0);
 
                     if (bytes_readen == 0 && clients.size() > 1 )
@@ -204,9 +204,7 @@ int Server::check_nickname(std::string name)
     for (size_t i= 0 ;i < this->clients.size(); i++)
     {
         if (clients[i].get_nickname() == name)
-        {
             return (0);
-        }
     }
     return (1);
 } 

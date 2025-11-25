@@ -67,7 +67,6 @@ class Server
         void remove_client_in_server(Client &client);
         void ctrl_c_handling(Client &client);
         void ctr_c_handler(std::vector<Client> &new_cl, Client &client);
-        // void invite(Client &client, std::string &cmd);
 };
 std::vector<std::pair<std::string, std::string> > pars_join(std::vector<std::string> &cmd);
 int string_to_int(const std::string &str);

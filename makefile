@@ -14,7 +14,7 @@ OBJ_BNS = $(BNS:.cpp=.o)
 
 CXX = c++
 
-CXXFLAGS = -Wall -Wextra -Werror -std=c++98 #-g -fsanitize=address
+CXXFLAGS = -Wall -Wextra -Werror -std=c++98  #-g -fsanitize=address
 
 	
 all: $(NAME)

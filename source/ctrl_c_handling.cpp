@@ -37,8 +37,6 @@ void Server::ctrl_c_handling(Client &client)
             channels[i].send_msg_in_channel(RPL_UMODEIS(client.get_nickname(), this->channels[i].getName_channel(), "+o",ch_op[0].get_nickname()));
         }
     }
-    // close(client.get_fd()); 
-
     for(size_t i = 0; i < channels.size(); i++)
     {
         if (channels[i].getClients().empty()  && channels[i].getOperators().empty())

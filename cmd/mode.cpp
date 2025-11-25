@@ -19,76 +19,53 @@ std::string int_to_string(int value)
 
 void Server::mode(Client &client, std::string &cmd)
 {
-    // validate that the user is logged in
-    if (!client.get_registred() || !client.get_authenticated())
-    {
-        print_error(client.get_fd(), "ERR_NOTREGISTERED");
-        return ;
-    }
-    // tokenize the input 
     std::vector<std::string> params = split(cmd, ' ', false);
     if (params.size() < 2)
     {
-        print_error(client.get_fd(), "ERR_NEEDMOREPARAMS(\"MODE\")");
+        print_error(client.get_fd(), ERR_NEEDMOREPARAMS(params[0]));
         return ;
     }
-    std::string channelName = params[1];
-    // validate the entered channel name and if it exists
-    Channel *channel = getchannel(channelName);
+    Channel *channel = getchannel(params[1]);
     if (!channel)
     {
-        print_error(client.get_fd(), "ERR_NOSUCHCHANNEL(\"channelName\")");
+
+        print_error(client.get_fd(), ERR_NOSUCHCHANNEL(params[1]));
         return ;
     }
-    // Here we just print the current modes associated with the channel
     if (params.size() == 2)
     {
-        std::string modes = "+";
-        std::string modeParams = "";
-
-        if (channel->getFlag_i()) modes += "i";
-        if (channel->getFlag_t()) modes += "t";
-        if (channel->getFlag_k()) modes += "k";
-        if (channel->getFlag_l())
-        {
-            modes += "l";
-            modeParams = " " + int_to_string(channel->getLimit());
-        }
-        std::string modeMessage = PREFIX " MODE " + channelName + " " +  modes + modeParams + POSTFIX;
-        print_error(client.get_fd(), modeMessage);
+        print_error(client.get_fd(), ERR_NOMODE(client.get_nickname(),params[1]));
         return ; 
     }
-    // if we don't only have two params like {MODE #channelName}, that means we are setting new modes and to do so the user would have to be an operator in the channel
     if (!channel->is_operator(client))
     {
-        print_error(client.get_fd(), "ERR_CHANOPRIVSNEEDED(channelName)");
+        print_error(client.get_fd(), ERR_CHANOPRIVSNEEDED(params[1]));
         return ;
     }
-    // Now that we have validated that the user is an operator, let's go parsing the following new  modes:
-    std::string modeString = params[2];
-    size_t paramsIndex = 3;
+    if (params[2] == "+" || params[2] == "-")
+    {
+        print_error(client.get_fd(), ERR_UNKNOWNMODE(client.get_nickname(), params[1], params[0]));
+        return;
+    }
+    // size_t paramsIndex = 3;
     char sign = '+';
     std::string appliedModes = "";
     std::string appliedParams = "";
-    for (size_t k = 0; k < modeString.length(); ++k)
+    for (size_t k = 0; k < params[2].length(); ++k)
     {
-        char c  = modeString[k];
+        char c  = params[2][k];
         if (c == '+' || c == '-')
         {
             sign = c;
             continue;
         }
-        std::string modeParam = "";
-        bool needsParam =  (sign == '+' && (c == 'k' || c == 'l' || c == 'o'))
-                            || (sign == '-' && c == 'o');
-        if (needsParam)
+
+        // std::string = "";
+        bool needsParam =  (sign == '+' && (c == 'k' || c == 'l' || c == 'o')) || (sign == '-' && c == 'o');
+        if (needsParam && (params.size() <= 3))
         {
-            if (paramsIndex >= params.size()) 
-            {
-                print_error(client.get_fd(), "ERR_NEEDMOREPARAMS(\"MODE\")");
+                print_error(client.get_fd(), ERR_NEEDMOREPARAMS(params[0]));
                 return ;
-            }
-            modeParam = params[paramsIndex++];
         }
         bool valid = true;
         switch(c) {
@@ -101,7 +78,7 @@ void Server::mode(Client &client, std::string &cmd)
             case 'k':
                 if (sign == '+')
                 {
-                    channel->setPassword(modeParam);
+                    channel->setPassword(params[3]);
                     channel->setFlag_k(true);
                 }
                 else
@@ -111,51 +88,60 @@ void Server::mode(Client &client, std::string &cmd)
                 }
                 break;
             case 'l':
-                if (sign == '+') {
-                    channel->setLimit(string_to_int(modeParam));
+                if (sign == '+') 
+                {
+                    channel->setLimit(string_to_int(params[3]));
                     channel->setFlag_l(true);
                 }
-                else {
+                else 
+                {
                     channel->setLimit(0);
                     channel->setFlag_l(false);
                 }
                 break;
             case 'o': {
-                Client *target = getClientByNick(modeParam);
+                Client *target = getClientByNick(params[3]);
                 if (!target) {
-                    print_error(client.get_fd(), "ERR_NOSUCHNICK(modeParam)");
+                    print_error(client.get_fd(), ERR_NOSUCHNICK(params[3]) /*"ERR_NOSUCHNICK(params[3])"*/);
                     return ;
                 }
                 if (!channel->is_client(*target) && !channel->is_operator(*target)) {
-                    print_error(client.get_fd(), "ERR_USERNOTINCHANNEL(modeParam, channelName)");
+                    print_error(client.get_fd(), ERR_USERNOTINCHANNEL(params[3], params[1]) /*"ERR_USERNOTINCHANNEL(params[3], params[1])"*/);
                     return ;
                 }
                 if (sign == '+') {
                     if (channel->is_client(*target))
-                        channel->removeOperator(*target);
+                        channel->removeclient(*target);
+                        // channel->removeOperator(*target);
+
                     channel->addoperator(*target);
                 }
                 else {
-                    channel->removeOperator(*target);
                     if (!channel->is_client(*target))
                         channel->addclient(*target);
+                    channel->removeOperator(*target);
+                    if ((channel->getOperators().empty()) && (channel->getClients().size()))
+                    {
+                        channel->getOperators().push_back(channel->getClients()[0]);
+                        channel->getClients().erase(channel->getClients().begin());
+                    }
                 }
                 break ;
             }
             default:
                 valid = false;
-                print_error(client.get_fd(), "ERR_UMODEUNKNOWNFLAG(c)");
+                //TODO  print_error(client.get_fd(), "ERR_UMODEUNKNOWNFLAG(c)");
                 break ;
         }
         if (valid) {
             appliedModes += sign;
             appliedModes += c;
-            if (!modeParam.empty())
-                appliedParams += " " + modeParam;
+            if (!params[4].empty())
+                appliedParams += " " + params[3];
         }
     }
     if (!appliedModes.empty()) {
-        std::string mode_message = ":" + client.get_nickname() + "!" + client.get_username() + "@" + client.get_host() + " MODE " + channelName + " " + appliedModes + appliedParams + POSTFIX;
+        std::string mode_message = ":" + client.get_nickname()  + " MODE " + params[1] + " " + appliedModes + appliedParams + POSTFIX;
         channel->send_msg_in_channel(mode_message);
     }
 } 
