@@ -116,6 +116,7 @@ void Server::start_server()
     size_t i =0;
     ssize_t bytes_readen = 0;
     char buffer[1024];
+    std::string new_buffer;
     std::cout << "-------SERVER START SUCCESSFULLY-------"<< std::endl;
     while(1)
     {
@@ -145,9 +146,10 @@ void Server::start_server()
                     fcntl(local_client.get_fd(), F_SETFL, O_NONBLOCK);
                     memset(buffer, 0,1024);
                     bytes_readen = recv(local_client.get_fd(), buffer,1024, 0);
-                    if (bytes_readen == 0 && clients.size() > 1)
+
+                    if (bytes_readen == 0 && clients.size() > 1 )
                     {
-                        std::cout << "CLIENT <" << local_client.get_fd() << "> disconnected !" << std::endl ; 
+                        std::cout << "CLIENT <" << local_client.get_fd() << "> disconnected !" << std::endl;
                         this->clients.erase(this->clients.begin() + i);
                         ctrl_c_handling(local_client);
                         close((this->fds.begin() + i)->fd);
@@ -160,8 +162,12 @@ void Server::start_server()
                         handle_new_client(local_client, buffer, i);
                     else 
                     {
-                        std::string new_buffer(buffer);
-                        pars_cmd(buffer, local_client);
+                        local_client.set_buffer_client(local_client.get_buffer_client() += buffer);
+                        std::cout << "  the buffer before parsing : " << local_client.get_buffer_client() << std::endl;
+                        if (local_client.get_buffer_client().find('\n') == std::string::npos)
+                            continue;
+                        pars_cmd(local_client.get_buffer_client(), local_client);
+                        local_client.clear_buffer();
                     }
                 }
             }

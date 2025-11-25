@@ -21,8 +21,7 @@ int main(int argc, char  **argv)
     {
         serverf.start_server();
     }
-    catch(const std::exception& e)
-    {
+    catch(const std::exception& e) {
         std::cerr << e.what() << '\n';
     }
 }

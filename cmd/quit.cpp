@@ -14,7 +14,6 @@ void Server::quit_handler(std::vector<Client> &new_cl, Client &client, std::vect
             it = new_cl.erase(it); 
             if (it != new_cl.end())
                 it  = tmp;
-
             if (new_cmd.size() > 1)
             {
                 if (new_cmd[1][0] == ':' && new_cmd.size() > 2)

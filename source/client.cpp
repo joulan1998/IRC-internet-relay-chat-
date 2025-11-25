@@ -3,6 +3,9 @@
 
 Client::Client( int fd) : fd(fd), registred(false),  authenticated(false),  nickname(""),  username(""),  hostname(""), servername(""), realname(""){}
 
+void Client::set_buffer_client(std::string value){this->buffer = value;}
+std::string Client::get_buffer_client(void){return this->buffer;}
+
 int Client::get_fd(void) {return this->fd;}
 void Client::set_fd(int value){this->fd = value;}
 
@@ -36,3 +39,5 @@ bool Client::operator == (Client other)
 {
     return this->fd == other.fd;
 }
+
+void    Client::clear_buffer(void)  {this->buffer.clear();}

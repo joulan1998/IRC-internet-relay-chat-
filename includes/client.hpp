@@ -15,10 +15,13 @@ class Client
         std::string servername;
         std::string realname;
         std::string host;
+        std::string buffer;
     public:
         Client( int fd );
         void set_fd(int value);
         int get_fd(void);
+        void set_buffer_client(std::string value);
+        std::string get_buffer_client(void);
 
         void set_authenticated(bool value);
         bool get_authenticated(void);
@@ -44,6 +47,8 @@ class Client
         void set_host(std::string value);
         std::string get_host(void);
         bool operator == (Client other);
+
+        void clear_buffer(void);
 };
 
 
