@@ -43,7 +43,6 @@ class Server
         void    handle_password(Client &local_client, std::string value);
         void    handle_username(Client &local_client, std::vector<std::string> table);
         void    handle_nickname(Client &local_client, std::vector<std::string> table);
-        static void free_data(int sig);
         void print_error(int fd, std::string msg);
         void print_msg(int fd, std::string msg);
         void pars_cmd(std::string buffer, Client &local_client);

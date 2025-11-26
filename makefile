@@ -2,7 +2,11 @@ NAME = ircserv
 
 BNS_NAME = bot_weather
 
-SRC = main.cpp source/ctrl_c_handling.cpp cmd/invite.cpp source/client_handling.cpp  source/kick.cpp source/channel.cpp source/server.cpp utils/irc_utils.cpp source/client.cpp cmd/topic.cpp cmd/join.cpp cmd/mode.cpp cmd/privmsg.cpp cmd/quit.cpp
+SRC = main.cpp cmd/invite.cpp \
+	source/ctrl_c_handling.cpp source/client_handling.cpp \
+	source/kick.cpp source/channel.cpp source/server.cpp \
+	utils/irc_utils.cpp source/client.cpp cmd/topic.cpp \
+	cmd/join.cpp cmd/mode.cpp cmd/privmsg.cpp cmd/quit.cpp
 
 BNS = bonus/bonus.cpp
 
