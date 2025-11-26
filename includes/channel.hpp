@@ -3,7 +3,6 @@
 #define CHANNEL_HPP
 #include "includes.hpp"
 #include "client.hpp"
-#include <vector>
 #include <iostream>
 #include <sys/socket.h>
 
@@ -63,7 +62,7 @@ class Channel
         std::string list_of_client();
         std::vector<Client > &getOperators();
         std::vector<Client > &getClients();
-          // frenzy commands:
+
         void removeOperator(Client &_client);
         void removeclient(Client &_client);
 };

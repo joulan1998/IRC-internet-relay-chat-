@@ -8,9 +8,8 @@
 #include <arpa/inet.h>
 #include <poll.h>
 #include <fcntl.h>
-#include <vector>
 #include <unistd.h>
-#include <algorithm>
+
 #include "client.hpp"
 #include "channel.hpp"
 #define MAX_CLIENT 10
@@ -41,9 +40,7 @@ class Server
         void    bind_server();
         void    set_listen();
         void    handle_new_client(Client &local_client, std::string value, size_t index);
-        void    handle_password(Client &local_client, std::string value/*, size_t index*/);
-        void    handle_message(Client &local_client, char *buffer, int i);
-        void    handle_message(Client &local_client, size_t index);
+        void    handle_password(Client &local_client, std::string value);
         void    handle_username(Client &local_client, std::vector<std::string> table);
         void    handle_nickname(Client &local_client, std::vector<std::string> table);
         static void free_data(int sig);

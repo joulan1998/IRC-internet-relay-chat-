@@ -150,20 +150,23 @@ void Server::start_server()
                     if (bytes_readen == 0 && clients.size() > 1 )
                     {
                         std::cout << "CLIENT <" << local_client.get_fd() << "> disconnected !" << std::endl;
-                        this->clients.erase(this->clients.begin() + i);
                         ctrl_c_handling(local_client);
                         close((this->fds.begin() + i)->fd);
+                        this->clients.erase(this->clients.begin() + i);
                         this->fds.erase(this->fds.begin() + i);
                         continue;
                     }
                     else if (bytes_readen < 0 )
                         throw(std::runtime_error("poll_error : " + std::string(strerror(errno))));
-                    if (!local_client.get_authenticated() && local_client.get_fd() != this->_socket_fd)
-                        handle_new_client(local_client, buffer, i);
+                    local_client.set_buffer_client(local_client.get_buffer_client() += buffer);
+                    if (!local_client.get_authenticated() && local_client.get_fd() != this->_socket_fd){
+                        if (local_client.get_buffer_client().find('\n') == std::string::npos)
+                            continue;
+                        handle_new_client(local_client, local_client.get_buffer_client(), i);
+                        local_client.clear_buffer();
+                    }
                     else 
                     {
-                        local_client.set_buffer_client(local_client.get_buffer_client() += buffer);
-                        std::cout << "  the buffer before parsing : " << local_client.get_buffer_client() << std::endl;
                         if (local_client.get_buffer_client().find('\n') == std::string::npos)
                             continue;
                         pars_cmd(local_client.get_buffer_client(), local_client);

@@ -10,12 +10,6 @@ Client* Server::getClientByNick(const std::string &nickname) {
     return NULL;
 }
 
-std::string int_to_string(int value)
-{
-    std::ostringstream oss;
-    oss << value;
-    return oss.str();
-}
 
 void Server::mode(Client &client, std::string &cmd)
 {
@@ -28,7 +22,6 @@ void Server::mode(Client &client, std::string &cmd)
     Channel *channel = getchannel(params[1]);
     if (!channel)
     {
-
         print_error(client.get_fd(), ERR_NOSUCHCHANNEL(params[1]));
         return ;
     }
@@ -47,7 +40,6 @@ void Server::mode(Client &client, std::string &cmd)
         print_error(client.get_fd(), ERR_UNKNOWNMODE(client.get_nickname(), params[1], params[0]));
         return;
     }
-    // size_t paramsIndex = 3;
     char sign = '+';
     std::string appliedModes = "";
     std::string appliedParams = "";
@@ -59,13 +51,11 @@ void Server::mode(Client &client, std::string &cmd)
             sign = c;
             continue;
         }
-
-        // std::string = "";
         bool needsParam =  (sign == '+' && (c == 'k' || c == 'l' || c == 'o')) || (sign == '-' && c == 'o');
         if (needsParam && (params.size() <= 3))
         {
-                print_error(client.get_fd(), ERR_NEEDMOREPARAMS(params[0]));
-                return ;
+            print_error(client.get_fd(), ERR_NEEDMOREPARAMS(params[0]));
+            return ;
         }
         bool valid = true;
         switch(c) {
@@ -101,19 +91,13 @@ void Server::mode(Client &client, std::string &cmd)
                 break;
             case 'o': {
                 Client *target = getClientByNick(params[3]);
-                if (!target) {
-                    print_error(client.get_fd(), ERR_NOSUCHNICK(params[3]) /*"ERR_NOSUCHNICK(params[3])"*/);
-                    return ;
-                }
-                if (!channel->is_client(*target) && !channel->is_operator(*target)) {
-                    print_error(client.get_fd(), ERR_USERNOTINCHANNEL(params[3], params[1]) /*"ERR_USERNOTINCHANNEL(params[3], params[1])"*/);
-                    return ;
-                }
+                if (!target)
+                    return (print_error(client.get_fd(), ERR_NOSUCHNICK(params[3])));
+                if (!channel->is_client(*target) && !channel->is_operator(*target))
+                    return (print_error(client.get_fd(), ERR_USERNOTINCHANNEL(params[3], params[1]) ));
                 if (sign == '+') {
                     if (channel->is_client(*target))
                         channel->removeclient(*target);
-                        // channel->removeOperator(*target);
-
                     channel->addoperator(*target);
                 }
                 else {
@@ -130,13 +114,14 @@ void Server::mode(Client &client, std::string &cmd)
             }
             default:
                 valid = false;
-                //TODO  print_error(client.get_fd(), "ERR_UMODEUNKNOWNFLAG(c)");
+                print_error(client.get_fd(), ERR_UNKNOWNMODE(client.get_nickname(), params[1], params[0]));
                 break ;
         }
-        if (valid) {
+        if (valid)
+        {
             appliedModes += sign;
             appliedModes += c;
-            if (!params[4].empty())
+            if (params.size() >= 4)
                 appliedParams += " " + params[3];
         }
     }

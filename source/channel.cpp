@@ -1,5 +1,5 @@
 #include "../includes/channel.hpp"
-#include <algorithm>
+
 Channel::Channel(const std::string &name) : name_channel(name),k(false),l(false),i(false),t(false){}
 
 std::string Channel::getName_channel(){return name_channel;}
@@ -37,7 +37,6 @@ void Channel::addoperator(Client &_client)
     
     for (size_t i = 0; i < op.size(); i++)
     {
-        // if (op[i].fd == _client.fd)
         if (op[i].get_fd() == _client.get_fd())
         {
             check = true;
@@ -54,7 +53,6 @@ void Channel::add_invited(Client &_client)
     
     for (size_t i = 0; i < invited.size(); i++)
     {
-        // if (invited[i].fd == _client.fd)
         if (invited[i].get_fd() == _client.get_fd())
         {
             check = true;
@@ -88,7 +86,6 @@ bool Channel::is_operator(Client &_client)
 {
     for (size_t i = 0; i < op.size(); i++)
     {
-        // if (op[i].fd == _client.fd)
         if (op[i].get_fd() == _client.get_fd())
             return true;
     }
@@ -99,7 +96,6 @@ bool Channel::is_client(Client &_client)
 {
     for (size_t i = 0; i < clients.size(); i++)
     {
-        // if(clients[i].fd == _client.fd)
         if(clients[i].get_fd() == _client.get_fd())
             return true;
     }
@@ -139,14 +135,12 @@ std::string Channel::list_of_client()
 
     for (size_t i = 0; i < op.size(); i++)
     {
-        // last_string += '@' + op[i].nickname;
         last_string += '@' + op[i].get_nickname();
         if(i != op.size())
             last_string += " ";
     }
     for (size_t i = 0; i < clients.size(); i++)
     {
-        // last_string += clients[i].nickname;
         last_string += clients[i].get_nickname();
         if(i != clients.size())
             last_string += " ";

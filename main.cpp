@@ -1,22 +1,22 @@
 #include "includes/includes.hpp"
 
-Server *ref;
+// Server *ref;
 
-void f()
-{
-    system("lsof -c ircserv");
-}
+// void f()
+// {
+//     system("lsof -c ircserv");
+// }
 
 int main(int argc, char  **argv)
 {
-    atexit(f);
+    // atexit(f);
     if (argc != 3)
     {
         std::cout << "the parama are not correct !" << std::endl;
         exit(1);
     }
         Server serverf(argv[1], argv[2]);
-        ref = &serverf;
+        // ref = &serverf;
     try
     {
         serverf.start_server();

@@ -14,7 +14,7 @@ OBJ_BNS = $(BNS:.cpp=.o)
 
 CXX = c++
 
-CXXFLAGS = -Wall -Wextra -Werror -std=c++98  #-g -fsanitize=address
+CXXFLAGS = -Wall -Wextra -Werror -std=c++98
 
 	
 all: $(NAME)
@@ -26,7 +26,7 @@ $(NAME): $(OBJ) $(INC)
 bonus: $(BNS_NAME)
 
 
-$(BNS_NAME) : $(OBJ_BNS) #$(INC)
+$(BNS_NAME) : $(OBJ_BNS)
 	$(CXX) $(CXXFLAGS)  $(OBJ_BNS) -o $(BNS_NAME) 
 
 %.o: %.cpp $(INC)
